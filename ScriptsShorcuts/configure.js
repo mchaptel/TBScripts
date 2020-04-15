@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 //
-//           Script ScriptShortcuts/Configure.js v_1.00
+//           Script ScriptShortcuts/Configure.js v_1.01
 //
 //     Script Package to add Shortcut entries for every script 
 //     in toonboom folders.
@@ -10,13 +10,13 @@
 //
 //
 //     v1 - first version
+//     v1.01 - added script file name in script list
 //
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 
 
 function configure(packageFolder, packageName){
-
   var scripts = getScriptList();
   for (var i in scripts){
     scriptFunctions = getScriptFunctions(scripts[i]);
@@ -61,11 +61,8 @@ function getScriptList(){
 
 function getFiles(filter, folder){
   // returns the list of URIs in a directory that match a filter
-  var dir = new QDir;
-  dir.setPath(folder);
-  var nameFilters = new Array;
-  nameFilters.push ( filter);
-  dir.setNameFilters( nameFilters );
+  var dir = new QDir(folder);
+  dir.setNameFilters( [filter] );
   dir.setFilter( QDir.Files );
 
   return files = dir.entryList().map(function(x){return folder+"/"+x});
@@ -93,7 +90,7 @@ function addShortcut(category, script, functionName){
 
   //Create Shortcut
   var shortcut = {id           : shortcutID,
-                  text         : functionName,
+                  text         : scriptName.replace(".js", "")+" : "+functionName,
                   action       : launchCommand,
                   longDesc     : "Runs function "+functionName+" of script "+scriptName,
                   categoryId   : category, 

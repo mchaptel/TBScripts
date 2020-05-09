@@ -1,19 +1,17 @@
-{
-  [
-    {
-      "name": "ScriptShortcuts",
-      "version": "0.1.0",
-      "compatibility": "Harmony Premium 16",
-      "description": "This script allows users to add shortcuts to the scripts they have installed",
-      "files": "./ScriptShortcut/",
-      "repository": "git+https://github.com/mchaptel/TBScripts.git",
-      "keywords": [
-        "shortcuts",
-        "package"
-      ],
-      "author": "Mathieu Chaptel",
-      "license": "MPL-2.0",
-      "website": "https://github.com/cfourney/OpenHarmony#readme"
-    }
-  ]
-}
+[
+  {
+    "name": "ScriptShortcuts",
+    "version": "0.1.0",
+    "compatibility": "Harmony Premium 16",
+    "description": "This script allows users to add shortcuts to the scripts they have installed",
+    "files": "./ScriptShortcut/",
+    "repository": "git+https://github.com/mchaptel/TBScripts.git",
+    "keywords": [
+      "shortcuts",
+      "package"
+    ],
+    "author": "Mathieu Chaptel",
+    "license": "MPL-2.0",
+    "website": "https://github.com/cfourney/OpenHarmony#readme"
+  }
+]

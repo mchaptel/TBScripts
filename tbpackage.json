@@ -1,11 +1,11 @@
 [
   {
-    "name": "ScriptShortcuts",
+    "name": "ScriptsShortcuts",
     "version": "0.1.0",
     "compatibility": "Harmony Premium 16",
     "description": "This script allows users to add shortcuts to the scripts they have installed",
     "files": [
-      "ScriptShortcut/"
+      "ScriptsShortcuts"
     ],
     "repository": "https://github.com/mchaptel/TBScripts/",
     "keywords": [

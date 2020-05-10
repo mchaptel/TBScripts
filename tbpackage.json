@@ -6,7 +6,7 @@
     "description": "This script allows users to add shortcuts to the scripts they have installed",
     "isPackage": "true",
     "files": [
-      "ScriptsShortcuts/package/ScriptsShortcuts/"  
+      "ScriptsShortcuts/packages/ScriptsShortcuts/"
     ],
     "repository": "https://github.com/mchaptel/TBScripts/",
     "keywords": [

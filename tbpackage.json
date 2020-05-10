@@ -5,7 +5,7 @@
     "compatibility": "Harmony Premium 16",
     "description": "This script allows users to add shortcuts to the scripts they have installed",
     "files": [
-      "ScriptsShortcuts"
+      "ScriptsShortcuts/"
     ],
     "repository": "https://github.com/mchaptel/TBScripts/",
     "keywords": [

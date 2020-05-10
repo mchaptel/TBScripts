@@ -4,8 +4,14 @@ var extensionList = new LocalExtensionList();
 
 function test(){
   var scrubber = new GithubScrubber();
-  log(JSON.stringify(scrubber.extensions));
+  var extensions = scrubber.extensions;
+  log(extensions.map(function(x){return JSON.stringify(x.package, null, "  ")}));
+  for (var i in extensions){
+    log("is extension "+scrubber.extensions[i].name+" installed? "+scrubber.extensions[i].installed)
+    log(scrubber.extensions[i].install());
+  }
 }
+
 
 // GithubScrubber Class ----------------------------------------------
 /**
@@ -18,18 +24,18 @@ function GithubScrubber(){
 
 
 /**
- * 
+ * The list of repositories urls scrubbed by the scrubber, defined in the REPOSLIST file.
  */
 Object.defineProperty(GithubScrubber.prototype, "repositories", {
   get: function(){
     if (typeof this._repositories === 'undefined'){
-      log ("getting repositories")
-      var reposFile = __file__.split("/").slice(0, -1).join("/")+"/REPOSLIST";
-      var reposList = JSON.parse(readFile(reposFile))
+      log ("getting repositories");
+      var reposFile = currentFolder()+"/REPOSLIST";
+      var reposList = JSON.parse(readFile(reposFile));
       //log(reposList)
-      if (!reposList) throw new Error("invalid REPOSLIST file")
+      if (!reposList) throw new Error("invalid REPOSLIST file");
 
-      this._repositories = reposList.map(function(x){return new GithubRepository(x)})
+      this._repositories = reposList.map(function(x){return new GithubRepository(x)});
     }
     return this._repositories;
   }
@@ -44,13 +50,13 @@ Object.defineProperty(GithubScrubber.prototype, "repositories", {
 Object.defineProperty(GithubScrubber.prototype, "extensions", {
   get: function(){
     if (typeof this._extensions === 'undefined'){
-      log ("getting extensions")
+      log ("getting the list of  available extensions.")
       var repos = this.repositories;
-      var extensions = []
+      var extensions = [];
 
       for (var i in repos){
         var reposExtensions = repos[i].extensions;
-        if (reposExtensions.length == 0) continue;
+        if (reposExtensions == null) continue;
 
         extensions = extensions.concat(reposExtensions);
       }
@@ -73,7 +79,7 @@ Object.defineProperty(GithubScrubber.prototype, "extensions", {
  * @property {Object}  contents       parsed json from the api query
  */
 function GithubRepository (url){
-  this._url = "https://api.github.com/repos/"+url.replace("https://github.com/", "");
+  this._url = url;
 }
 
 
@@ -84,12 +90,19 @@ function GithubRepository (url){
  */
 Object.defineProperty(GithubRepository.prototype, "apiUrl", {
   get: function(){
-    //log(this._url)
-    return this._url;
-  },
-  set: function(url){
-    // handle repo urls with just name/repo, or with github.com address and format as api url
-    this._url = "https://api.github.com/repos/"+url.replace("https://github.com/", "");
+    return "https://api.github.com/repos/"+this._url.replace("https://github.com/", "");
+  }
+});
+
+
+/**
+ * The url of the repository, formatted to download the file from the master branch
+ * @name GithubRepository#dlUrl
+ * @type {string}
+ */
+Object.defineProperty(GithubRepository.prototype, "dlUrl", {
+  get: function(){
+    return "https://raw.githubusercontent.com/"+this._url.replace("https://github.com/", "")+"master/";
   }
 });
 
@@ -97,25 +110,20 @@ Object.defineProperty(GithubRepository.prototype, "apiUrl", {
 /**
  * The github url describing the extensions available on this repository
  * @name GithubRepository#package
- * @type {string}
+ * @type {object}  the json object contained in the tbpackage.json file on the repository
  */
 Object.defineProperty(GithubRepository.prototype, "package", {
   get: function(){
-    log ("getting repos package")
+    log ("getting repos package for repo "+this.apiUrl);
     if (typeof this._package === 'undefined'){
-      var contents = this.contents;
+      var tbpackage = webQuery.get(this.dlUrl+"tbpackage.json");
 
-      for (i in contents){
-        if (contents[i].hasOwnProperty("name") && contents[i].name == "tbpackage.json") {
-          this._package = contents[i].download_url;
-          break;
-        }
-      }
-      
-      if (typeof this._package === 'undefined') {
+      if (tbpackage.hasOwnProperty("message") && tbpackage.message == "Not Found"){
         log("Package file not present in repository");
         return null;
       }
+
+      this._package = tbpackage;
     }
     return this._package;
   }
@@ -129,7 +137,7 @@ Object.defineProperty(GithubRepository.prototype, "package", {
  */
 Object.defineProperty(GithubRepository.prototype, "contents", {
   get: function(){
-    log ("getting repos contents")
+    log ("getting repos contents for repo "+this.apiUrl);
     if (typeof this._contents === 'undefined'){
       var contents = webQuery.get(this.apiUrl+"contents/");
       // check validity here
@@ -147,40 +155,66 @@ Object.defineProperty(GithubRepository.prototype, "contents", {
  */
 Object.defineProperty(GithubRepository.prototype, "extensions", {
   get: function(){
-    log ("getting repos extensions")
+    log ("getting repos extensions for repo "+this.apiUrl);
     if (typeof this._extensions === 'undefined'){
-      // read package file from repository 
-      var packageUrl = this.package;
-      var packageFile = webQuery.get(packageUrl);
+      // read package file from repository
+      var packageFile = this.package;
+      if (packageFile == null) return null;
 
-      this._extensions = [];
+      var extensions = [];
       for (var i in packageFile){
-        this._extensions.push(new Extension(packageFile[i]));
+        extensions.push(new Extension(this, packageFile[i]));
       }
+
+      this._extensions = extensions;
     }
+
     return this._extensions;
   }
 });
 
 
 /**
- * 
+ * Gets the list of file descriptions matching the filter in the specified folder of the repository.
+ * @param {string} folder    The subfolder related to the root of the repo in which to look for files
+ * @param {string} filter    A file search filter
+ * @example
+ * // files json contain the following fields:
+ * {
+ *   "name": "configure.js",
+ *   "path": "ScriptsShortcuts/packages/ScriptsShortcuts/configure.js",
+ *   "sha": "1ad6843dfddd6d296fa69861707e482db2629c3d",
+ *   "size": 2890,
+ *   "url": "https://api.github.com/repos/mchaptel/TBScripts/contents/ScriptsShortcuts/packages/ScriptsShortcuts/configure.js?ref=master",
+ *   "html_url": "https://github.com/mchaptel/TBScripts/blob/master/ScriptsShortcuts/packages/ScriptsShortcuts/configure.js",
+ *   "git_url": "https://api.github.com/repos/mchaptel/TBScripts/git/blobs/1ad6843dfddd6d296fa69861707e482db2629c3d",
+ *   "download_url": "https://raw.githubusercontent.com/mchaptel/TBScripts/master/ScriptsShortcuts/packages/ScriptsShortcuts/configure.js",
+ *   "type": "file",
+ *   "_links": {
+ *     "self": "https://api.github.com/repos/mchaptel/TBScripts/contents/ScriptsShortcuts/packages/ScriptsShortcuts/configure.js?ref=master",
+ *     "git": "https://api.github.com/repos/mchaptel/TBScripts/git/blobs/1ad6843dfddd6d296fa69861707e482db2629c3d",
+ *     "html": "https://github.com/mchaptel/TBScripts/blob/master/ScriptsShortcuts/packages/ScriptsShortcuts/configure.js"
+ *   }
+ * }
  */
 GithubRepository.prototype.getFiles = function(folder, filter){
   if (typeof filter === 'undefined') var filter = /.*/;
   if (typeof filter === 'string'){
-    filter = filter.replace(/\./g, "\\.")    // ignore dots in filter before changing into regex
-    filter = filter.replace(/\*/g, "\\.*")   // transform * into regex wildcard search
-    filter = RegExp(filter);
-  } 
+    if (filter == "") filter = "*"           // empty string for filter is a matchall expression
+    filter = filter.replace(/\./g, "\\.");   // escape dots in filter before changing into regex
+    filter = filter.replace(/\*/g, ".*");  // transform * into regex wildcard search
+    filter = RegExp(filter, "i");            // add ignore case flag and convert string to regex
+  }
 
-  var url = this.apiUrl+"contents/"+folder
-  
+  log("getting files inside "+folder+" that match filter "+filter)
+
+  var url = this.apiUrl+"contents/"+folder;
+
   var search = [];
 
   var files = webQuery.get(url);
   for (var i in files){
-    if (files[i].type == "file" && filter.match(files[i].name)) search.push(files[i]);
+    if (files[i].type == "file" && files[i].name.match(filter)) search.push(files[i]);
     if (files[i].type == "dir") search = search.concat(this.getFiles(folder+"/"+files[i].name));
   }
 
@@ -191,25 +225,17 @@ GithubRepository.prototype.getFiles = function(folder, filter){
 // Extension Class ---------------------------------------------------
 /**
  * @classdesc
+ * The Extension Class models a single extension from a repository. It allows reading of the package file, the list of files, to install it, etc.
  * @property
- * @param {object} jsonObject 
+ * @param {object} tbpackage     The part of a tbpackage object describing this extension
  */
-function Extension(jsonObject){
-  this.name = "";
-  this.version = "";
-  this.compatibility = "";
-  this.description = "";
-  this.files = "";
-  this.repository = "";
-  this.keywords = "";
-  this.author = "";
-  this.license = "";
-  this.website = "";
+function Extension(repository, tbpackage){
+  this.repository = repository
+  this.name = tbpackage.name;
+  this.version = tbpackage.version;
 
   // set properties based on json
-  for (property in jsonObject){
-    this[property] = jsonObject[property]
-  }
+  this.package = tbpackage;
 }
 
 
@@ -220,25 +246,141 @@ function Extension(jsonObject){
  */
 Object.defineProperty(Extension.prototype, "installed", {
   get: function(){
-    
+    return extensionList.isInstalled(this);
+  },
+  set: function(){ 
   }
 })
 
 
 /**
- * 
+ * The complete list of files corresponding to this extension
+ * @name Extension#rootFolder
+ * @type {object}
+ */
+Object.defineProperty(Extension.prototype, "rootFolder", {
+  get: function(){
+    if (typeof this._rootFolder === 'undefined'){
+      this._rootFolder = ""
+      var files = this.package.files;
+      for (var i in files){
+        // looking for a folder in the package files list
+        if (files[i].slice(-1) == "/"){
+          this._rootFolder = files[i];
+          break;
+        }
+      }
+    }
+
+    log ("root folder : "+this._rootFolder)
+    return this._rootFolder;
+  }
+});
+
+
+/**
+ * The complete list of files corresponding to this extension
+ * @name Extension#files
+ * @type {object}
+ * @example
+ * // files json contain the following fields:
+ * {
+ *   "name": "configure.js",
+ *   "path": "ScriptsShortcuts/packages/ScriptsShortcuts/configure.js",
+ *   "sha": "1ad6843dfddd6d296fa69861707e482db2629c3d",
+ *   "size": 2890,
+ *   "url": "https://api.github.com/repos/mchaptel/TBScripts/contents/ScriptsShortcuts/packages/ScriptsShortcuts/configure.js?ref=master",
+ *   "html_url": "https://github.com/mchaptel/TBScripts/blob/master/ScriptsShortcuts/packages/ScriptsShortcuts/configure.js",
+ *   "git_url": "https://api.github.com/repos/mchaptel/TBScripts/git/blobs/1ad6843dfddd6d296fa69861707e482db2629c3d",
+ *   "download_url": "https://raw.githubusercontent.com/mchaptel/TBScripts/master/ScriptsShortcuts/packages/ScriptsShortcuts/configure.js",
+ *   "type": "file",
+ *   "_links": {
+ *     "self": "https://api.github.com/repos/mchaptel/TBScripts/contents/ScriptsShortcuts/packages/ScriptsShortcuts/configure.js?ref=master",
+ *     "git": "https://api.github.com/repos/mchaptel/TBScripts/git/blobs/1ad6843dfddd6d296fa69861707e482db2629c3d",
+ *     "html": "https://github.com/mchaptel/TBScripts/blob/master/ScriptsShortcuts/packages/ScriptsShortcuts/configure.js"
+ *   }
+ * }
+ */
+Object.defineProperty(Extension.prototype, "files", {
+  get: function(){
+    if (typeof this._files === 'undefined'){
+      var packageFiles = this.package.files;
+      var files = [];
+
+      for (var i in packageFiles){
+        var file = packageFiles[i].split("/");
+        var search = file.pop();
+        var folder = file.join("/");  
+        
+        // log (folder, search)
+
+        var results = this.repository.getFiles(folder, search)
+        if (results.length > 0) files = files.concat(results);
+      }
+
+      this._files = files;
+    }
+    return this._files;
+  }
+})
+
+
+/**
+ * @name Extension#localPaths
+ * @type {string[]}
+ */
+Object.defineProperty(Extension.prototype, "localPaths", {
+  get: function(){
+    if (typeof this._localPaths === 'undefined'){
+      var rootFolder = this.rootFolder;
+      this._localPaths = this.files.map(function(x){return x.path.replace(rootFolder, "")})
+      // log ("file paths : "+this._localPaths)
+    }
+    return this._localPaths;
+  }
+})
+
+
+/**
+ * @name Extension#localPaths
+ * @type {string[]}
+ */
+Object.defineProperty(Extension.prototype, "installLocation", {
+  get: function(){
+    return extensionList.installFolder+(this.package.isPackaged?"":"packages/"+this.name+"/")
+  }
+});
+
+
+
+/**
+ * Installs the extension
+ * @returns {bool}  the success of the installation
  */
 Extension.prototype.install = function(){
-
+  var downloader = new ExtensionDownloader(this.repository, this);  // dedicated object to implement threaded download later
+  try{
+    var files = downloader.downloadFiles();
+    log ("downloaded files :\n"+ files.join("\n"))
+    var tempFolder = files[0];
+    // move the files into the script folder or package folder
+    recursiveFileCopy(tempFolder, this.installLocation);
+  }catch(err){
+    log (err.lineNumber+" : "+err)
+    return false;
+  }
+  extensionList.addExtension(this); // create a record of this installation
+  return true;
 }
 
 
 // LocalExtensionList Class ----------------------------------------------
 /**
- * 
+ * @classdesc
+ * The LocalExtensionList holds the locally installed extensions list and updates it.
  */
 function LocalExtensionList(){
-
+  this._installFolder = specialFolders.userScripts+"/";   // default install folder, can be modified with installFolder property
 }
 
 
@@ -248,9 +390,6 @@ function LocalExtensionList(){
  */
 Object.defineProperty(LocalExtensionList.prototype, "installFolder", {
   get: function(){
-    if (typeof this._installFolder === 'undefined'){
-      this._installFolder = specialFolders.userScripts;
-    }
     return this._installFolder;
   },
   set: function(newLocation){
@@ -259,35 +398,139 @@ Object.defineProperty(LocalExtensionList.prototype, "installFolder", {
 });
 
 
+/**
+ * @name LocalExtensionList#installedExtensions
+ * @type {string}
+ */
+Object.defineProperty(LocalExtensionList.prototype, "installedExtensions", {
+  get: function(){
+    var list = readFile(extensionList.listFile);
+    if (list == null) return [];
+    return JSON.parse(list);
+  }
+});
+
+
+/**
+ * @name LocalExtensionList#listFile
+ * @type {string}
+ */
+Object.defineProperty(LocalExtensionList.prototype, "listFile", {
+  get: function(){
+    return specialFolders.userConfig+"/.extensionsList"
+  }
+});
+
+
+/**
+ * Checks whether the extension is in the list of installed extensions.
+ */
+LocalExtensionList.prototype.isInstalled = function(extension){
+  var installList = this.installedExtensions;
+  for (var i in installList){
+    if (installList[i].name == extension.name && installList[i].version == extension.version) return true;
+    // check if the files are present?
+  }
+  return false;
+}
+
+
+/**
+ * Adds an extension to the installed list
+ */
+LocalExtensionList.prototype.addExtension = function(extension){
+  var installList = this.installedExtensions;
+  var installedPackage = deepCopy(extension.package);
+  var installFolder = this.installFolder;
+
+  var files = extension.localPaths.map(function(x){return extension.installLocation+x});
+
+  installedPackage.files = files;
+  installList.push(installedPackage);
+  installList = JSON.stringify(installList, null, "  ")
+
+  writeFile(this.listFile,installList )
+}
+
+
+// ScriptDownloader Class --------------------------------------------
+/**
+ * @classdesc
+ * @constructor
+ */
+function ExtensionDownloader(repository, extension){
+  this.repository = repository;
+  this.extension = extension;
+  this.destFolder = specialFolders.temp+"/"+extension.name+"_"+extension.version+"/";
+}
+
+
+/**
+ * Downloads the files of the extension from the repository set in the object instance.
+ * @returns [string[]]    an array of paths of the downloaded files location, as well as the destination folder at index 0 of the array.
+ */
+ExtensionDownloader.prototype.downloadFiles = function(){
+  log ("starting download of files from extension "+this.extension.name);
+  var destFolder = this.destFolder;
+  var destPaths = this.extension.localPaths.map(function(x){return destFolder+x});
+  var dlFiles = [this.destFolder];
+
+  // log ("destPaths: "+destPaths)
+
+  var files = this.extension.files;
+
+  for (var i=0; i<files.length; i++){
+    // make the directory
+    var dest = destPaths[i].split("/").slice(0,-1).join("/")
+    var dir = new QDir(dest);
+    if (!dir.exists()) dir.mkpath(dest);
+
+    webQuery.download(files[i].download_url, destPaths[i]);
+    var dlFile = new File(destPaths[i]);
+    if (dlFile.size == files[i].size) {
+      // download complete!
+      log ("successfully downloaded "+files[i].name+" to location : "+destPaths[i])
+      dlFiles.push(destPaths[i])
+    }else{
+      throw new Error("Downloaded file "+destPaths[i]+" size does not match expected size : "+dlFile.size+" "+files[i].size)
+    }
+  }
+
+  return dlFiles;
+}
+
+
 // NetworkConnexionHandler Class --------------------------------------
 /**
- * 
- * @param {string} url 
+ * @constructor
+ * @classdesc
+ * The NetworkConnexionHandler class handles web queries and downloads. It uses curl for communicating with the remote apis. <br>
+ * This class extends QObject so it can broadcast signals and be threaded.
+ * @extends QObject
  */
-function NetworkConnexionHandler (command){
-  if (typeof command == "string") command = [command]
-  this.command = command
+function NetworkConnexionHandler (){
   this.curl = new CURL()
 }
 
 
 /**
- * 
+ *
  */
 NetworkConnexionHandler.prototype.get = function(command){
   if (typeof command == "string") command = [command]
-  result = this.curl.get(command);
+  var result = this.curl.get(command);
   // handle errors
-  return result
+  return JSON.parse(result)
 }
 
 
 /**
- * 
+ *
  */
 NetworkConnexionHandler.prototype.download = function(url, destinationPath){
-  command = ["-L", "-o", url, destinationPath];
-  this.curl.query(command);
+  var command = ["-L", "-o", destinationPath, url];
+  var result = this.curl.get(command, 30000); // 30s timeout
+  return result
 }
 
 
@@ -308,32 +551,34 @@ function CURL(){
  * @example
  * // query the files list
  *  var query = "\"query\" : \"{ repository(name: $repoName) { commit(rev: \"HEAD\") { tree(path: \"$folder\", recursive: true) { entries { path isDirectory url } } } } }\""
- * 
+ *
  * // query a file content
  *  var query = query "{ repository(name: $repoName) { defaultBranch { target { commit { blob(path: "$path") { content } } } } } }"
- * 
+ *
  * // more : https://docs.sourcegraph.com/api/graphql/examples
+ * // more info about authentication : https://developer.github.com/apps/building-github-apps/authenticating-with-github-apps/
  */
-CURL.prototype.query = function(query){
+CURL.prototype.query = function(query, wait){
+  if (typeof wait === 'undefined') var wait = 5000;
   try{
     var p = new QProcess();
     var bin = this.bin;
 
     //log ("starting process :"+bin+" "+command);
-    var command = ["-H", "Content-Type: application/json", "-X", "POST", "-d"];
+    var command = ["-H", "Authorization: Bearer YOUR_JWT", "-H", "Content-Type: application/json", "-X", "POST", "-d"];
     query = query.replace(/\n/gm, "\\\\n").replace(/"/gm, '\\"');
     command.push('" \\\\n'+query+'"');
     command.push("https://api.github.com/graphql");
-    
+
     p.start(bin, command);
 
-    p.waitForFinished(10000);
+    p.waitForFinished(wait);
 
     var readOut = p.readAllStandardOutput();
     var output = new QTextStream(readOut).readAll();
     //log ("json: "+output);
 
-    return JSON.parse(output);
+    return output;
   }catch(err){
     log(err);
     return null;
@@ -344,21 +589,22 @@ CURL.prototype.query = function(query){
 /**
  * Queries the REST Github API v3 with a curl process
  */
-CURL.prototype.get = function(command){
+CURL.prototype.get = function(command, wait){
+  if (typeof wait === 'undefined') var wait = 5000;
   try{
     var p = new QProcess();
     var bin = this.bin;
 
-    //log ("starting process :"+bin+" "+command);
+    // log ("starting process :"+bin+" "+command);
     p.start(bin, command);
 
-    p.waitForFinished(10000);
+    p.waitForFinished(wait);
 
     var readOut = p.readAllStandardOutput();
     var output = new QTextStream(readOut).readAll();
-    //log ("json: "+output);
+    // log ("json: "+output);
 
-    return JSON.parse(output);
+    return output;
   }catch(err){
     log(err);
     return null;
@@ -379,7 +625,7 @@ Object.defineProperty(CURL.prototype, "bin", {
       }else{
         var curl = ["/usr/bin/curl", "/usr/local/bin/curl"];
       }
-    
+
       for (var i in curl){
         if((new File(curl[i])).exists) {
           CURL.__proto__.bin = curl[i];
@@ -396,13 +642,19 @@ Object.defineProperty(CURL.prototype, "bin", {
 
 
 // Helper functions ---------------------------------------------------
-function log(message){
-  MessageLog.trace(message);
-  System.println(message);
+
+// log a series of values to the messageLog and command line window. Can pass as many arguments as necessary.
+function log(){
+  var message = []
+  for (var i=0; i<arguments.length; i++){
+    message.push(arguments[i])
+  }
+  MessageLog.trace(message.join(" "));
+  System.println(message.join(" "));
 }
 
 
-
+// reads a local file and return the contents
 function readFile(filename) {
   var file = new File(filename);
 
@@ -415,4 +667,69 @@ function readFile(filename) {
     }
   } catch (err) {}
   return null;
+}
+
+
+// writes the contents to the specified filename.
+function writeFile(filename, content, append){
+  if (typeof append === 'undefined') var append = false;
+
+  var file = new File(filename);
+  try {
+      if (append){
+          file.open(FileAccess.Append);
+      }else{
+          file.open(FileAccess.WriteOnly);
+      }
+      file.write(content);
+      file.close();
+      return true
+  } catch (err) {return false;}
+}
+
+
+// returns the folder of this file
+function currentFolder(){
+  return __file__.split("/").slice(0, -1).join("/");
+}
+
+
+// make a deep copy of an object
+function deepCopy(object){
+  var copy = Object.create(object.constructor)
+
+  for (var i in object){
+    var original = object[i]
+    if (object[i] instanceof Object){
+      original = deepCopy(object[i])
+    }
+    copy[i] = original;
+  }
+
+  return copy
+}
+
+
+// recursive copy of folders content
+function recursiveFileCopy(folder, destination){
+  log ("copying files from folder "+folder+" to destination "+destination)
+  try{
+    var p = new QProcess();
+    var bin = "robocopy";
+    var command = ["/E", "/TEE", "/MOV", folder, destination];
+
+    // log ("starting process :"+bin+" "+command);
+    p.start(bin, command);
+
+    p.waitForFinished(-1);
+
+    var readOut = p.readAllStandardOutput();
+    var output = new QTextStream(readOut).readAll();
+    // log ("copy results: "+output);
+
+    return output;
+  }catch(err){
+    log(err);
+    return null;
+  }
 }

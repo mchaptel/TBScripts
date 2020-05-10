@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>403</width>
-    <height>468</height>
+    <width>408</width>
+    <height>494</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -273,6 +273,20 @@ p, li { white-space: pre-wrap; }
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QPushButton" name="pushButton_7">
+           <property name="text">
+            <string>View Source</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_8">
+           <property name="text">
+            <string>Website</string>
+           </property>
+          </widget>
+         </item>
          <item>
           <spacer name="horizontalSpacer">
            <property name="orientation">
@@ -552,7 +566,17 @@ p, li { white-space: pre-wrap; }
         </widget>
        </item>
        <item>
-        <widget class="QWidget" name="" native="true">
+        <widget class="QCheckBox" name="checkBox">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Packages are stored in the &amp;quot;/package&amp;quot; folder and contain a configure.js file that can define windows, shortcuts and menu items in the Harmony User Interface. &lt;/p&gt;&lt;p&gt;Select this option if the files have to be installed in the &amp;quot;/package&amp;quot; folder.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>This extension is a TBHarmony package.</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="widget" native="true">
          <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
            <widget class="QLabel" name="label_5">
@@ -599,7 +623,7 @@ p, li { white-space: pre-wrap; }
          <item>
           <widget class="QPushButton" name="pushButton_5">
            <property name="text">
-            <string>Generate Package Registration File</string>
+            <string>Generate Extension Registration File</string>
            </property>
           </widget>
          </item>

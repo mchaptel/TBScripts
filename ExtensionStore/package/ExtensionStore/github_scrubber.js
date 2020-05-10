@@ -18,7 +18,7 @@ function GithubScrubber(){
 
 
 /**
- *
+ * 
  */
 Object.defineProperty(GithubScrubber.prototype, "repositories", {
   get: function(){
@@ -44,13 +44,13 @@ Object.defineProperty(GithubScrubber.prototype, "repositories", {
 Object.defineProperty(GithubScrubber.prototype, "extensions", {
   get: function(){
     if (typeof this._extensions === 'undefined'){
-      log ("getting the list of  available extensions.")
+      log ("getting extensions")
       var repos = this.repositories;
       var extensions = []
 
       for (var i in repos){
         var reposExtensions = repos[i].extensions;
-        if (reposExtensions == null) continue;
+        if (reposExtensions.length == 0) continue;
 
         extensions = extensions.concat(reposExtensions);
       }
@@ -73,7 +73,7 @@ Object.defineProperty(GithubScrubber.prototype, "extensions", {
  * @property {Object}  contents       parsed json from the api query
  */
 function GithubRepository (url){
-  this._url = url;
+  this._url = "https://api.github.com/repos/"+url.replace("https://github.com/", "");
 }
 
 
@@ -84,42 +84,38 @@ function GithubRepository (url){
  */
 Object.defineProperty(GithubRepository.prototype, "apiUrl", {
   get: function(){
-    return "https://api.github.com/repos/"+this._url.replace("https://github.com/", "");
+    //log(this._url)
+    return this._url;
+  },
+  set: function(url){
+    // handle repo urls with just name/repo, or with github.com address and format as api url
+    this._url = "https://api.github.com/repos/"+url.replace("https://github.com/", "");
   }
 });
-
-
-/**
- * The url of the repository, formatted to download the file from the master branch
- * @name GithubRepository#dlUrl
- * @type {string}
- */
-Object.defineProperty(GithubRepository.prototype, "dlUrl", {
-  get: function(){
-    return "https://raw.githubusercontent.com/"+this._url.replace("https://github.com/", "")+"master/";
-  }
-});
-
-
 
 
 /**
  * The github url describing the extensions available on this repository
  * @name GithubRepository#package
- * @type {object}  the json object contained in the tbpackage.json file on the repository
+ * @type {string}
  */
 Object.defineProperty(GithubRepository.prototype, "package", {
   get: function(){
-    log ("getting repos package for repo "+this.apiUrl)
+    log ("getting repos package")
     if (typeof this._package === 'undefined'){
-      var tbpackage = webQuery.get(this.dlUrl+"tbpackage.json");
+      var contents = this.contents;
 
-      if (tbpackage.hasOwnProperty("message") && tbpackage.message == "Not Found"){
+      for (i in contents){
+        if (contents[i].hasOwnProperty("name") && contents[i].name == "tbpackage.json") {
+          this._package = contents[i].download_url;
+          break;
+        }
+      }
+      
+      if (typeof this._package === 'undefined') {
         log("Package file not present in repository");
         return null;
       }
-
-      this._package = tbpackage;
     }
     return this._package;
   }
@@ -133,7 +129,7 @@ Object.defineProperty(GithubRepository.prototype, "package", {
  */
 Object.defineProperty(GithubRepository.prototype, "contents", {
   get: function(){
-    log ("getting repos contents for repo "+this.apiUrl)
+    log ("getting repos contents")
     if (typeof this._contents === 'undefined'){
       var contents = webQuery.get(this.apiUrl+"contents/");
       // check validity here
@@ -151,38 +147,35 @@ Object.defineProperty(GithubRepository.prototype, "contents", {
  */
 Object.defineProperty(GithubRepository.prototype, "extensions", {
   get: function(){
-    log ("getting repos extensions for repo "+this.apiUrl)
+    log ("getting repos extensions")
     if (typeof this._extensions === 'undefined'){
-      // read package file from repository
-      var packageFile = this.package;
-      if (packageFile == null) return null
+      // read package file from repository 
+      var packageUrl = this.package;
+      var packageFile = webQuery.get(packageUrl);
 
-      var extensions = [];
+      this._extensions = [];
       for (var i in packageFile){
-        extensions.push(new Extension(packageFile[i]));
+        this._extensions.push(new Extension(packageFile[i]));
       }
-
-      this._extensions = extensions;
     }
-
     return this._extensions;
   }
 });
 
 
 /**
- *
+ * 
  */
 GithubRepository.prototype.getFiles = function(folder, filter){
   if (typeof filter === 'undefined') var filter = /.*/;
   if (typeof filter === 'string'){
-    filter = filter.replace(/\./g, "\\.")    // escape dots in filter before changing into regex
+    filter = filter.replace(/\./g, "\\.")    // ignore dots in filter before changing into regex
     filter = filter.replace(/\*/g, "\\.*")   // transform * into regex wildcard search
-    filter = RegExp(filter, "i");            // ignore case
-  }
+    filter = RegExp(filter);
+  } 
 
   var url = this.apiUrl+"contents/"+folder
-
+  
   var search = [];
 
   var files = webQuery.get(url);
@@ -195,23 +188,11 @@ GithubRepository.prototype.getFiles = function(folder, filter){
 }
 
 
-/**
- *
- */
-GithubRepository.prototype.downloadFiles = function(files, destination){
-
-
-}
-
-
-
-
-
 // Extension Class ---------------------------------------------------
 /**
  * @classdesc
  * @property
- * @param {object} jsonObject
+ * @param {object} jsonObject 
  */
 function Extension(jsonObject){
   this.name = "";
@@ -239,13 +220,13 @@ function Extension(jsonObject){
  */
 Object.defineProperty(Extension.prototype, "installed", {
   get: function(){
-
+    
   }
 })
 
 
 /**
- *
+ * 
  */
 Extension.prototype.install = function(){
 
@@ -254,7 +235,7 @@ Extension.prototype.install = function(){
 
 // LocalExtensionList Class ----------------------------------------------
 /**
- *
+ * 
  */
 function LocalExtensionList(){
 
@@ -280,8 +261,8 @@ Object.defineProperty(LocalExtensionList.prototype, "installFolder", {
 
 // NetworkConnexionHandler Class --------------------------------------
 /**
- *
- * @param {string} url
+ * 
+ * @param {string} url 
  */
 function NetworkConnexionHandler (command){
   if (typeof command == "string") command = [command]
@@ -291,7 +272,7 @@ function NetworkConnexionHandler (command){
 
 
 /**
- *
+ * 
  */
 NetworkConnexionHandler.prototype.get = function(command){
   if (typeof command == "string") command = [command]
@@ -302,7 +283,7 @@ NetworkConnexionHandler.prototype.get = function(command){
 
 
 /**
- *
+ * 
  */
 NetworkConnexionHandler.prototype.download = function(url, destinationPath){
   command = ["-L", "-o", url, destinationPath];
@@ -327,10 +308,10 @@ function CURL(){
  * @example
  * // query the files list
  *  var query = "\"query\" : \"{ repository(name: $repoName) { commit(rev: \"HEAD\") { tree(path: \"$folder\", recursive: true) { entries { path isDirectory url } } } } }\""
- *
+ * 
  * // query a file content
  *  var query = query "{ repository(name: $repoName) { defaultBranch { target { commit { blob(path: "$path") { content } } } } } }"
- *
+ * 
  * // more : https://docs.sourcegraph.com/api/graphql/examples
  */
 CURL.prototype.query = function(query){
@@ -343,7 +324,7 @@ CURL.prototype.query = function(query){
     query = query.replace(/\n/gm, "\\\\n").replace(/"/gm, '\\"');
     command.push('" \\\\n'+query+'"');
     command.push("https://api.github.com/graphql");
-
+    
     p.start(bin, command);
 
     p.waitForFinished(10000);
@@ -368,14 +349,14 @@ CURL.prototype.get = function(command){
     var p = new QProcess();
     var bin = this.bin;
 
-    log ("starting process :"+bin+" "+command);
+    //log ("starting process :"+bin+" "+command);
     p.start(bin, command);
 
     p.waitForFinished(10000);
 
     var readOut = p.readAllStandardOutput();
     var output = new QTextStream(readOut).readAll();
-    log ("json: "+output);
+    //log ("json: "+output);
 
     return JSON.parse(output);
   }catch(err){
@@ -398,7 +379,7 @@ Object.defineProperty(CURL.prototype, "bin", {
       }else{
         var curl = ["/usr/bin/curl", "/usr/local/bin/curl"];
       }
-
+    
       for (var i in curl){
         if((new File(curl[i])).exists) {
           CURL.__proto__.bin = curl[i];

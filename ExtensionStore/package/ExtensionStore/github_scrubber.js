@@ -783,8 +783,14 @@ function recursiveFileCopy(folder, destination){
   log ("copying files from folder "+folder+" to destination "+destination)
   try{
     var p = new QProcess();
-    var bin = "robocopy";
-    var command = ["/E", "/TEE", "/MOV", folder, destination];
+
+    if (about.isWindowsArch()){
+      var bin = "robocopy";
+      var command = ["/E", "/TEE", "/MOV", folder, destination];
+    }else{
+      var bin = "cp";
+      var command = ["-R", folder, destination];
+    }
 
     // log ("starting process :"+bin+" "+command);
     p.start(bin, command);
@@ -793,7 +799,7 @@ function recursiveFileCopy(folder, destination){
 
     var readOut = p.readAllStandardOutput();
     var output = new QTextStream(readOut).readAll();
-    // log ("copy results: "+output);
+    log ("copy results: "+output);
 
     return output;
   }catch(err){

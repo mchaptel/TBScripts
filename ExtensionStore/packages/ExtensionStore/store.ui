@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>349</width>
-    <height>536</height>
+    <width>672</width>
+    <height>590</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,76 +25,101 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="0,0,0,0">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetMaximumSize</enum>
+         </property>
+         <item>
+          <widget class="QLineEdit" name="searchStore">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Maximum">
+             <horstretch>1</horstretch>
+             <verstretch>1</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>200</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="placeholderText">
+            <string>Search...</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="storeClearSearch">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+             <horstretch>0</horstretch>
+             <verstretch>1</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>23</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>X</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Expanding</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="showInstalledCheckbox">
+           <property name="layoutDirection">
+            <enum>Qt::LeftToRight</enum>
+           </property>
+           <property name="text">
+            <string>Only show installed extensions</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
         <widget class="QSplitter" name="storeSplitter">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
+         <property name="handleWidth">
+          <number>4</number>
+         </property>
          <widget class="QWidget" name="layoutWidget">
           <layout class="QVBoxLayout" name="verticalLayout_5">
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_11">
-             <property name="sizeConstraint">
-              <enum>QLayout::SetDefaultConstraint</enum>
-             </property>
-             <item>
-              <widget class="QLineEdit" name="searchStore">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>1</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>200</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-               <property name="placeholderText">
-                <string>Search...</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="storeClearSearch">
-               <property name="maximumSize">
-                <size>
-                 <width>23</width>
-                 <height>23</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>X</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="horizontalSpacer_4">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::Expanding</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>0</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
            <item>
             <widget class="QTreeWidget" name="extensionsList">
              <property name="showDropIndicator" stdset="0">
@@ -117,7 +142,17 @@
              </attribute>
              <column>
               <property name="text">
-               <string>Available Extensions</string>
+               <string>Name</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string/>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>version</string>
               </property>
              </column>
              <column>
@@ -132,9 +167,21 @@
               <property name="text">
                <string/>
               </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
               <item>
                <property name="text">
                 <string>script1</string>
+               </property>
+               <property name="text">
+                <string>O</string>
+               </property>
+               <property name="text">
+                <string/>
                </property>
                <property name="text">
                 <string/>
@@ -151,23 +198,57 @@
             <number>9</number>
            </property>
            <item>
-            <spacer name="verticalSpacer_2">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeType">
-              <enum>QSizePolicy::Maximum</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
+            <widget class="QGroupBox" name="storeKeywordsGroup">
+             <property name="minimumSize">
               <size>
-               <width>20</width>
-               <height>20</height>
+               <width>0</width>
+               <height>45</height>
               </size>
              </property>
-            </spacer>
+             <property name="title">
+              <string>Keywords</string>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_4">
+              <property name="leftMargin">
+               <number>9</number>
+              </property>
+              <property name="topMargin">
+               <number>4</number>
+              </property>
+              <property name="rightMargin">
+               <number>6</number>
+              </property>
+              <property name="bottomMargin">
+               <number>6</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="storeKeywordsLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="autoFillBackground">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Tool, Package, Animation</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
            </item>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_9">
+             <item>
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>Description:</string>
+               </property>
+              </widget>
+             </item>
              <item>
               <spacer name="horizontalSpacer">
                <property name="orientation">
@@ -198,9 +279,15 @@
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>100</width>
+                 <width>60</width>
                  <height>16777215</height>
                 </size>
+               </property>
+               <property name="layoutDirection">
+                <enum>Qt::RightToLeft</enum>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
                <property name="readOnly">
                 <bool>true</bool>
@@ -208,13 +295,6 @@
               </widget>
              </item>
             </layout>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_2">
-             <property name="text">
-              <string>Description:</string>
-             </property>
-            </widget>
            </item>
            <item>
             <widget class="QTextEdit" name="descriptionText">
@@ -235,35 +315,25 @@ p, li { white-space: pre-wrap; }
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="storeKeywordsGroup">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>45</height>
-              </size>
-             </property>
-             <property name="title">
-              <string>Keywords</string>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_4">
-              <item>
-               <widget class="QLabel" name="storeKeywordsLabel">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="autoFillBackground">
-                 <bool>false</bool>
-                </property>
-                <property name="text">
-                 <string>Tool, Package, Animation</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
+            <layout class="QHBoxLayout" name="horizontalLayout_12">
+             <item>
+              <widget class="QLabel" name="label_6">
+               <property name="text">
+                <string>Author:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="authorStoreLabel">
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout">
@@ -328,7 +398,7 @@ p, li { white-space: pre-wrap; }
               <number>15</number>
              </property>
              <item>
-              <widget class="QPushButton" name="installButton">
+              <widget class="QToolButton" name="installButton">
                <property name="minimumSize">
                 <size>
                  <width>80</width>
@@ -342,9 +412,9 @@ p, li { white-space: pre-wrap; }
                 </size>
                </property>
                <property name="text">
-                <string>Install</string>
+                <string>test</string>
                </property>
-               <property name="flat">
+               <property name="autoRaise">
                 <bool>false</bool>
                </property>
               </widget>
@@ -898,7 +968,7 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QLabel" name="label_11">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -933,19 +1003,13 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QLabel" name="label_3">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
+         <property name="autoFillBackground">
+          <bool>false</bool>
          </property>
          <property name="text">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This extension is made available for free by entusiast script makers and users and is not endorsed or curated by Toonboom. Use the extensions available for download on this store at your own risk.&lt;/p&gt;&lt;p&gt;The extensions available on this store are open source and sourced from checked github accounts. Make sure you read the source code and understand it before you install any extension.&lt;/p&gt;&lt;p&gt;If you have a question about a script, you can use the provided github or website address to contact the script author. We cannot offer support for extensions not working correctly.&lt;/p&gt;&lt;p&gt;If you want to register as a script creator and want to share your scripts through this extension, get in touch and we will add your github account to the list of content makers.&lt;/p&gt;&lt;p&gt;The source for this extension is available here:&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/mchaptel/TBScripts/tree/master/ExtensionStore/package/ExtensionStore&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://github.com/mchaptel/TBScripts/tree/master/ExtensionStore/package/ExtensionStore&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -957,6 +1021,9 @@ p, li { white-space: pre-wrap; }
           <set>Qt::AlignJustify|Qt::AlignTop</set>
          </property>
          <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+         <property name="openExternalLinks">
           <bool>true</bool>
          </property>
         </widget>

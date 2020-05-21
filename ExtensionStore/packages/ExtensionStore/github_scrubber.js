@@ -345,7 +345,8 @@ Object.defineProperty(Extension.prototype, "files", {
 Object.defineProperty(Extension.prototype, "id", {
   get: function(){
     if (typeof this._id === 'undefined'){
-      this._id = (this.repository.name+this.name).replace(/ /g, "_")
+      var repoName = this.package.repository.replace("https://github.com/", "")
+      this._id = (repoName+this.name).replace(/ /g, "_")
     }
     return this._id;
   }
@@ -380,8 +381,41 @@ Extension.prototype.toString = function(){
  */
 Extension.prototype.matchesSearch = function(search){
   if (search == "") return true;
-  return (this.name.indexOf(search)!= -1 || this.package.keywords.join("").indexOf(search) != -1);
+
+  // match all of the terms in the search, in any order, amongst the name and keywords
+  search = RegExp("(?=.*"+search.split(" ").join(")(?=.*")+(").*"), "ig")
+
+  var searchableString = this.name+","+this.package.keywords.join(",")
+  return (search.exec(searchableString));
 }
+
+
+/**
+ * Check if the extension version
+ */
+Extension.prototype.currentVersionIsOlder = function(version){
+  version = version.split(".");
+  var ownVersion = this.version.split(".");
+
+  var length = Math.max(version.length>ownVersion.length);
+
+  while(version.length<length) {
+    version.push(0)
+  }
+  while(ownVersion.length<length) {
+    ownVersion.push(0)
+  }
+
+  log (version)
+  log(ownVersion)
+
+  for (var i = 0; i < ownVersion.length; i++){
+    if (version[i] > ownVersion[i]) return true;
+    if (version[i] < ownVersion[i]) return false;
+  }
+  return false;
+}
+
 
 // LocalExtensionList Class ----------------------------------------------
 /**
@@ -423,6 +457,7 @@ Object.defineProperty(LocalExtensionList.prototype, "extensions", {
       if (!list) return this._extensions;
       var extensions = list.map(function(x){return new Extension("local", x)})
       for (var i in extensions){
+        log("installed extension "+extensions[i].id)
         this._extensions[extensions[i].id] = extensions[i];
       }
     }
@@ -438,7 +473,7 @@ Object.defineProperty(LocalExtensionList.prototype, "extensions", {
 Object.defineProperty(LocalExtensionList.prototype, "list", {
   get: function(){
     if (typeof this._list === 'undefined'){
-      this._list == [];
+      this._list = [];
       var listFile = this._listFile;
       var list = readFile(listFile);
       if (!list) return this._list;
@@ -481,13 +516,13 @@ LocalExtensionList.prototype.install = function(extension){
     var tempFolder = files[0];
     // move the files into the script folder or package folder
     recursiveFileCopy(tempFolder, installLocation);
+    this.addToList(extension, installLocation); // create a record of this installation
+
+    return true;
   }catch(err){
     log (err.lineNumber+" : "+err);
     return false;
   }
-
-  this.addToList(extension, installLocation); // create a record of this installation
-  return true;
 }
 
 
@@ -501,7 +536,20 @@ LocalExtensionList.prototype.addToList = function(extension, installLocation){
   var files = extension.localPaths.map(function(x){return installLocation+x});
 
   installedPackage.localFiles = files;
-  installList.push(installedPackage);
+  
+  log("installList:" + installList);
+  log(extension.name+" is installed ?"+this.isInstalled(extension));
+
+  if (!this.isInstalled(extension)){
+    log("adding to installed list "+extension.name);
+    installList.push(installedPackage);
+  }else{
+    // if already installed, we update instead
+    var index = installList.map(function(x){return x.id}).indexOf(extension.id)
+    log(index)
+    installList.splice(index, 1, installedPackage)
+  }
+
   installList = JSON.stringify(installList, null, "  ");
 
   writeFile(this._listFile, installList);
@@ -509,6 +557,15 @@ LocalExtensionList.prototype.addToList = function(extension, installLocation){
   // create new local extension object and add to this.extensions property
   var extension = new Extension("local", installedPackage)
   this.extensions[extension.id] = extension;
+}
+
+
+/**
+ * 
+ */
+LocalExtensionList.prototype.refreshExtensions = function(){
+  delete this._extensions;
+  var extensions = this.extensions;
 }
 
 
@@ -764,17 +821,17 @@ var currentFolder = __file__.split("/").slice(0, -1).join("/");
 
 // make a deep copy of an object
 function deepCopy(object){
-  var copy = Object.create(object.constructor)
+  var copy = Object.create(object.__proto__);
 
   for (var i in object){
-    var original = object[i]
+    var original = object[i];
     if (object[i] instanceof Object){
-      original = deepCopy(object[i])
+      original = deepCopy(object[i]);
     }
     copy[i] = original;
   }
 
-  return copy
+  return copy;
 }
 
 
@@ -789,7 +846,7 @@ function recursiveFileCopy(folder, destination){
       var command = ["/E", "/TEE", "/MOV", folder, destination];
     }else{
       var bin = "cp";
-      var command = ["-R", folder, destination];
+      var command = ["-Rv", folder, destination];
     }
 
     // log ("starting process :"+bin+" "+command);

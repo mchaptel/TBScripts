@@ -80,12 +80,9 @@ function initStoreUI() {
   settings.setFontSize(QWebSettings.DefaultFontSize, webPreviewsFontSize);
 
   // setup the scrollArea containing the webview
-  var webWidget = storeDescriptionPanel.webScroll.widget();
-  // storeDescriptionPanel.webScroll.setWidgetResizable(true);
-  // storeDescriptionPanel.webScroll.setWidgetResizable(true);
+  var webWidget = storeDescriptionPanel.webContent;
   webWidget.setLayout(new QVBoxLayout());
   webWidget.layout().setContentsMargins(0,0,0,0);
-  // webWidget.layout().setSizeConstraint(QLayout.SetMinAndMaxSize)
   webWidget.layout().addWidget(descriptionText, 0, Qt.AlignTop);
   // webWidget.setWidget(descriptionText);
 
@@ -101,7 +98,7 @@ function initStoreUI() {
   
   var registerPanel = registerTab.registerScroll.widget().registerForm;
   var registerDescription = registerPanel.descriptionSplitter.widget(0);
-  var htmlPreview = registerPanel.descriptionSplitter.widget(1).widget();
+  var htmlPreview = registerPanel.descriptionSplitter.widget(1);
   // registerPanel.descriptionSplitter.widget(1).setWidgetResizable(true);
   registerPanel.descriptionSplitter.setSizes([registerPanel.descriptionSplitter.width, 0]);
 

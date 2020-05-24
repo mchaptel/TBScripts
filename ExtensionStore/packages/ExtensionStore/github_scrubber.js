@@ -35,7 +35,6 @@ Object.defineProperty(Store.prototype, "sellers", {
   get: function () {
     if (typeof this._sellers === 'undefined') {
       log("getting sellers");
-      // var sellersFile = currentFolder + "/SELLERSLIST";
       var sellersFile = "https://raw.githubusercontent.com/mchaptel/TBScripts/master/ExtensionStore/packages/ExtensionStore/SELLERSLIST";
       try {
         var sellersList = webQuery.get(sellersFile);

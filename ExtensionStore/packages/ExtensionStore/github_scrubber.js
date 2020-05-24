@@ -36,9 +36,9 @@ Object.defineProperty(Store.prototype, "sellers", {
     if (typeof this._sellers === 'undefined') {
       log("getting sellers");
       // var sellersFile = currentFolder + "/SELLERSLIST";
-      var sellersFile = "https://api.github.com/repos/mchaptel/TBScripts/contents/ExtensionStore/packages/ExtensionStore/SELLERSLIST?ref=master";
+      var sellersFile = "https://raw.githubusercontent.com/mchaptel/TBScripts/master/ExtensionStore/packages/ExtensionStore/SELLERSLIST";
       try {
-        var sellersList = JSON.parse(readFile(sellersFile));
+        var sellersList = webQuery.get(sellersFile);
         log(sellersList)
       } catch (err) {
         throw new Error("invalid SELLERSLIST file");
@@ -50,7 +50,7 @@ Object.defineProperty(Store.prototype, "sellers", {
   }
 });
 
-s
+
 /**
  * The list of repositories objects amongst all the store sellers, defined in the SELLERSLIST file.
  */

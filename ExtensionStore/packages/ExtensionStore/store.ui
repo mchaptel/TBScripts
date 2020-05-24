@@ -14,10 +14,31 @@
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item>
     <widget class="QTabWidget" name="tabWidget">
+     <property name="tabShape">
+      <enum>QTabWidget::Rounded</enum>
+     </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>2</number>
+     </property>
+     <property name="movable">
+      <bool>false</bool>
+     </property>
+     <property name="tabBarAutoHide">
+      <bool>false</bool>
      </property>
      <widget class="QWidget" name="storeTab">
       <attribute name="title">
@@ -324,7 +345,7 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>204</width>
+                <width>234</width>
                 <height>16</height>
                </rect>
               </property>
@@ -591,8 +612,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>563</width>
-            <height>362</height>
+            <width>581</width>
+            <height>380</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -804,7 +825,7 @@ p, li { white-space: pre-wrap; }
                     <x>0</x>
                     <y>0</y>
                     <width>69</width>
-                    <height>202</height>
+                    <height>220</height>
                    </rect>
                   </property>
                  </widget>
@@ -953,7 +974,7 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QLabel" name="label_11">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
            <horstretch>0</horstretch>
            <verstretch>1</verstretch>
           </sizepolicy>
@@ -1000,7 +1021,7 @@ p, li { white-space: pre-wrap; }
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This extension is made available for free by entusiast script makers and users and is not endorsed or curated by Toonboom. Use the extensions available for download on this store at your own risk.&lt;/p&gt;&lt;p&gt;The extensions available on this store are open source and sourced from checked github accounts. Make sure you read the source code and understand it before you install any extension.&lt;/p&gt;&lt;p&gt;If you have a question about a script, you can use the provided github or website address to contact the script author. We cannot offer support for extensions not working correctly.&lt;/p&gt;&lt;p&gt;If you want to register as a script creator and want to share your scripts through this extension, get in touch and we will add your github account to the list of content makers.&lt;/p&gt;&lt;p&gt;The source for this extension is available here:&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/mchaptel/TBScripts/tree/master/ExtensionStore/package/ExtensionStore&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://github.com/mchaptel/TBScripts/tree/master/ExtensionStore/package/ExtensionStore&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="textFormat">
-          <enum>Qt::RichText</enum>
+          <enum>Qt::AutoText</enum>
          </property>
          <property name="alignment">
           <set>Qt::AlignJustify|Qt::AlignTop</set>

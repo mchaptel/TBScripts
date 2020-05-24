@@ -44,60 +44,106 @@ function initStoreUI() {
   var packageView = ScriptManager.getView("Extension Store");
   var ui = ScriptManager.loadViewUI(packageView, "./store.ui");
   ui.minimumWidth = UiLoader.dpiScale(350);
+  ui.minimumHeight = UiLoader.dpiScale(400);
 
   // set ui and ui responses
+  webPreviewsFontFamily = "Arial";
+  webPreviewsFontSize = 12;
+  webPreviewsStyleSheet = "QWidget { background-color: lightGrey; }";
 
   // disable tabs until store is loaded
   var storeTab = ui.tabWidget.widget(0);
-  var installedTab = ui.tabWidget.widget(1);
-  var registerTab = ui.tabWidget.widget(2);
-  var aboutTab = ui.tabWidget.widget(3);
+  var registerTab = ui.tabWidget.widget(1);
+  var aboutTab = ui.tabWidget.widget(2);
 
   var storeLabel = ui.tabWidget.tabText(0)
-  var installedLabel = ui.tabWidget.tabText(1)
-  var registerLabel = ui.tabWidget.tabText(2)
-  var aboutLabel = ui.tabWidget.tabText(3)
+  var registerLabel = ui.tabWidget.tabText(1)
+  var aboutLabel = ui.tabWidget.tabText(2)
 
-  var storeListPanel = storeTab.storeSplitter.widget(0)
-  var storeDescriptionPanel = storeTab.storeSplitter.widget(1)
+  var storeListPanel = storeTab.storeSplitter.widget(0);
+  var storeDescriptionPanel = storeTab.storeSplitter.widget(1);
   var extensionsList = storeListPanel.extensionsList;
-  extensionsList.setColumnWidth(0, 220)
-  extensionsList.setColumnWidth(1, 30)
-  extensionsList.setColumnWidth(2, 60)
+  extensionsList.setColumnWidth(0, 220);
+  extensionsList.setColumnWidth(1, 30);
+  extensionsList.setColumnWidth(2, 60);
 
-  ui.tabWidget.removeTab(2);
+  
+  // Setup description panel -----------------------------------------
+  
+  // create the webview programmatically
+  var descriptionText = new QWebView();
+  descriptionText.setStyleSheet(webPreviewsStyleSheet);
+  descriptionText.setMinimumSize(0,0);
+  descriptionText.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum);
+  var settings = descriptionText.settings();
+  settings.setFontFamily(QWebSettings.StandardFont, webPreviewsFontFamily);
+  settings.setFontSize(QWebSettings.DefaultFontSize, webPreviewsFontSize);
+
+  // setup the scrollArea containing the webview
+  var webWidget = storeDescriptionPanel.webScroll.widget();
+  // storeDescriptionPanel.webScroll.setWidgetResizable(true);
+  // storeDescriptionPanel.webScroll.setWidgetResizable(true);
+  webWidget.setLayout(new QVBoxLayout());
+  webWidget.layout().setContentsMargins(0,0,0,0);
+  // webWidget.layout().setSizeConstraint(QLayout.SetMinAndMaxSize)
+  webWidget.layout().addWidget(descriptionText, 0, Qt.AlignTop);
+  // webWidget.setWidget(descriptionText);
+
   ui.tabWidget.removeTab(1);
   ui.tabWidget.removeTab(0);
 
-  //hide description panel at load ------------------------------------
   // set default expanded size to half the splitter size
-  storeTab.storeSplitter.setSizes([storeTab.storeSplitter.width/2, storeTab.storeSplitter.width/2]);
-  var storeTabState = storeTab.storeSplitter.saveState()
+  storeTab.storeSplitter.setSizes([storeTab.storeSplitter.width / 2, storeTab.storeSplitter.width / 2]);
+  var storeTabState = storeTab.storeSplitter.saveState();
   storeTab.storeSplitter.setSizes([storeTab.storeSplitter.width, 0]);
 
+  // Setup register panel --------------------------------------------
+  
+  var registerPanel = registerTab.registerScroll.widget().registerForm;
+  var registerDescription = registerPanel.descriptionSplitter.widget(0);
+  var htmlPreview = registerPanel.descriptionSplitter.widget(1).widget();
+  // registerPanel.descriptionSplitter.widget(1).setWidgetResizable(true);
+  registerPanel.descriptionSplitter.setSizes([registerPanel.descriptionSplitter.width, 0]);
 
-  // Subclass TreeWidgetItem
+  // create the webview programmatically
+  var descriptionPreview = new QWebView();
+  descriptionPreview.setStyleSheet(webPreviewsStyleSheet);
+  descriptionPreview.setMinimumSize(0,0);
+  descriptionPreview.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum);
+  var previewSettings = descriptionPreview.settings();
+  previewSettings.setFontFamily(QWebSettings.StandardFont, webPreviewsFontFamily);
+  previewSettings.setFontSize(QWebSettings.DefaultFontSize, webPreviewsFontSize);
+
+  // setup the scrollArea containing the webview
+  htmlPreview.setLayout(new QVBoxLayout());
+  htmlPreview.layout().setContentsMargins(0,0,0,0);
+  htmlPreview.layout().addWidget(descriptionPreview, 0, Qt.AlignTop);
+  // htmlPreview.setWidget(descriptionPreview);
+
+  registerDescription.textChanged.connect(this, function () {
+    descriptionPreview.setHtml(registerDescription.document().toPlainText())
+  })
+
+  // load store button------------------------------------------------
+
+  // Subclass TreeWidgetItem 
   function ExtensionItem(extension) {
-    QTreeWidgetItem.call(this, [extension.name, "",extension.version], 1024);
+    QTreeWidgetItem.call(this, [extension.name, "", extension.version], 1024);
+    // store the extension id in the item
     this.setData(0, Qt.UserRole, extension.id);
+
     // add an icon in the middle column showing if installed and if update present
-    
-    if (localList.isInstalled(extension)){
+    if (localList.isInstalled(extension)) {
       var icon = "✓";
-      log(localList.extensions[extension.id].version)
-      log(extension.version)
-      log(localList.extensions[extension.id].currentVersionIsOlder(extension.version))
-      log(extension.currentVersionIsOlder(localList.extensions[extension.id].version))
-      if (localList.extensions[extension.id].currentVersionIsOlder(extension.version)) var icon = "↺";
-    }else{
+      var localExtension = localList.extensions[extension.id];
+      if (localExtension.currentVersionIsOlder(extension.version)) icon = "↺";
+    } else {
       var icon = "✗";
     }
     this.setText(1, icon)
-    // this.setIcon(1)
-    //this.setIcon(0)   // if provided in package, set icon for extension
-    // log("init treewidgetitem for " + this.extension.name)
   }
   ExtensionItem.prototype = Object.create(QTreeWidgetItem.prototype);
+
 
   // update the list of extensions
   function updateStoreList() {
@@ -115,7 +161,7 @@ function initStoreUI() {
 
     // populate the extension list
     for (var i in repos) {
-      var extensions = repos[i].extensions.filter(function(x){
+      var extensions = repos[i].extensions.filter(function (x) {
         if (storeTab.showInstalledCheckbox.checked && !localList.isInstalled(x)) return false;
         return x.matchesSearch(filter);
       })
@@ -134,11 +180,36 @@ function initStoreUI() {
     }
   }
 
+  // connect store init to load button
+  aboutTab.loadStoreButton.clicked.connect(this, function () {
+    ui.tabWidget.insertTab(0, registerTab, registerLabel);
+    ui.tabWidget.insertTab(0, storeTab, storeLabel);
+    ui.tabWidget.setCurrentWidget(storeTab);
+    updateStoreList();
+  })
 
-  // Update the store slide out panel with info from selection
+  // filter the store list --------------------------------------------
+  storeTab.searchStore.textChanged.connect(this, function () {
+    updateStoreList();
+  })
+
+  // filter by installed only -----------------------------------------
+  storeTab.showInstalledCheckbox.toggled.connect(this, function () {
+    updateStoreList();
+  })
+
+  // Clear search button ----------------------------------------------
+  storeTab.storeClearSearch.setStyleSheet("QToolButton { background-color: black }")
+  storeTab.storeClearSearch.clicked.connect(this, function () {
+    storeTab.searchStore.text = "";
+  })
+
+
+  // connect the showing of the description to selection Change -------
+  // Update the store slide out panel with info from selection --------
   function updateStoreDescription(extension) {
     storeDescriptionPanel.versionStoreLabel.text = extension.version;
-    storeDescriptionPanel.descriptionText.setHtml(extension.package.description);
+    descriptionText.setHtml(extension.package.description);
     storeDescriptionPanel.storeKeywordsGroup.storeKeywordsLabel.text = extension.package.keywords.join(", ");
     storeDescriptionPanel.authorStoreLabel.text = extension.package.author;
     storeDescriptionPanel.sourceButton.toolTip = extension.repository._url;
@@ -148,92 +219,79 @@ function initStoreUI() {
     // storeDescriptionPanel.installButton
   }
 
-
-  // load store button------------------------------------------------
-  aboutTab.loadStoreButton.clicked.connect(this, function () {
-    ui.tabWidget.insertTab(0, registerTab, registerLabel);
-    //ui.tabWidget.insertTab(0, installedTab, installedLabel);
-    ui.tabWidget.insertTab(0, storeTab, storeLabel);
-    ui.tabWidget.setCurrentWidget(storeTab);
-
-    updateStoreList();
-  })
-
-
-
-  // filter the store list --------------------------------------------
-  storeTab.searchStore.textChanged.connect(this, function(){
-    updateStoreList();
-  })
-
-
-  storeTab.showInstalledCheckbox.toggled.connect(this, function(){
-    updateStoreList();
-  })
-
-
-  //connect the showing/updating of the description to selection Change 
   extensionsList.itemSelectionChanged.connect(this, function () {
-    // log("changed selection")
     var selection = extensionsList.selectedItems();
     if (storeTab.storeSplitter.sizes()[1] != 0) storeTabState = storeTab.storeSplitter.saveState();
 
-    if (selection.length > 0 && selection[0].type() != 0){
+    if (selection.length > 0 && selection[0].type() != 0) {
       storeTab.storeSplitter.restoreState(storeTabState);
       var id = selection[0].data(0, Qt.UserRole);
       var extension = store.extensions[id];
-      
-      // populate the descirption panel
+
+      // populate the description panel
       updateStoreDescription(extension);
-    }else{
+    } else {
+      // collapse description
       storeTab.storeSplitter.setSizes([storeTab.storeSplitter.width, 0]);
     }
   })
 
 
-  // Clear search button -----------------------------------------------
-  storeTab.storeClearSearch.clicked.connect(this, function () {
-    storeTab.searchStore.text = "";
-  })
-
-
-  // View Source button
+  // View Source button -----------------------------------------------
   storeDescriptionPanel.sourceButton.clicked.connect(this, function () {
     QDesktopServices.openUrl(new QUrl(storeDescriptionPanel.sourceButton.toolTip))
   });
-  
 
-  // View Website Button
+
+  // View Website Button ----------------------------------------------
   storeDescriptionPanel.websiteButton.clicked.connect(this, function () {
     QDesktopServices.openUrl(new QUrl(storeDescriptionPanel.websiteButton.toolTip))
   });
 
 
+  // Install Button ----------------------------------------------
   var installAction = new QAction("Install", this);
-  // installAction.setText("Install")s
 
-  installAction.triggered.connect(this, function(action){
-    log(action)
-    log("installing")
+  installAction.triggered.connect(this, function () {
     var selection = extensionsList.selectedItems();
     if (selection.length == 0) return
     var id = selection[0].data(0, Qt.UserRole);
     var extension = store.extensions[id];
 
     log("installing extension : " + extension.repository.name + extension.name)
-    log(JSON.stringify(extension.package, null, "  "))
+    // log(JSON.stringify(extension.package, null, "  "))
     var success = localList.install(extension);
-    if (success){
-      MessageBox.information("Extension "+extension.name+" v"+extension.version+"\nwas installed correctly.")
-    }else{
-      MessageBox.information("There was an error while installing extension\n"+extension.name+" v"+extension.version+".")
+    if (success) {
+      MessageBox.information("Extension " + extension.name + " v" + extension.version + "\nwas installed correctly.")
+    } else {
+      MessageBox.information("There was an error while installing extension\n" + extension.name + " v" + extension.version + ".")
     }
     localList.refreshExtensions();
     updateStoreList();
   })
 
-  // Install Button
   storeDescriptionPanel.installButton.setDefaultAction(installAction);
+
+  // Install Button ----------------------------------------------
+  var uninstallAction = new QAction("Uninstall", this);
+
+  uninstallAction.triggered.connect(this, function () {
+    var selection = extensionsList.selectedItems();
+    if (selection.length == 0) return
+    var id = selection[0].data(0, Qt.UserRole);
+    var extension = store.extensions[id];
+
+    log("uninstalling extension : " + extension.repository.name + extension.name)
+    // log(JSON.stringify(extension.package, null, "  "))
+    var success = localList.uninstall(extension);
+    if (success) {
+      MessageBox.information("Extension " + extension.name + " v" + extension.version + "\nwas uninstalled succesfully.")
+    } else {
+      MessageBox.information("There was an error while uninstalling extension\n" + extension.name + " v" + extension.version + ".")
+    }
+    localList.refreshExtensions();
+    updateStoreList();
+  })
 
   ui.show();
 
@@ -242,8 +300,13 @@ function initStoreUI() {
     for (var i = 0; i < arguments.length; i++) {
       message.push(arguments[i])
     }
-    MessageLog.trace(message.join(" "));
-    System.println(message.join(" "));
+    try{
+      MessageLog.trace(message.join(" "));
+      System.println(message.join(" "));  
+    }catch(err){
+      MessageLog.trace(message)
+      MessageLog.trace("logging error : "+err)
+    }
   }
 
   function logWidgetHierarchy(widget, prefix) {

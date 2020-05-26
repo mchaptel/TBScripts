@@ -51,21 +51,15 @@ function initStoreUI() {
   webPreviewsFontSize = 12;
   webPreviewsStyleSheet = "QWidget { background-color: lightGrey; }";
 
-  // disable tabs until store is loaded
-  var storeTab = ui.tabWidget.widget(0);
-  var registerTab = ui.tabWidget.widget(1);
-  var aboutTab = ui.tabWidget.widget(2);
+  // disable store frame until store is loaded
+  var storeFrame = ui.storeFrame;
+  var aboutFrame = ui.aboutFrame;
 
-  var storeLabel = ui.tabWidget.tabText(0)
-  var registerLabel = ui.tabWidget.tabText(1)
-  var aboutLabel = ui.tabWidget.tabText(2)
-
-  var storeListPanel = storeTab.storeSplitter.widget(0);
-  var storeDescriptionPanel = storeTab.storeSplitter.widget(1);
+  var storeListPanel = storeFrame.storeSplitter.widget(0);
+  var storeDescriptionPanel = storeFrame.storeSplitter.widget(1);
   var extensionsList = storeListPanel.extensionsList;
   extensionsList.setColumnWidth(0, 220);
   extensionsList.setColumnWidth(1, 30);
-  extensionsList.setColumnWidth(2, 60);
 
   
   // Setup description panel -----------------------------------------
@@ -84,48 +78,20 @@ function initStoreUI() {
   webWidget.setLayout(new QVBoxLayout());
   webWidget.layout().setContentsMargins(0,0,0,0);
   webWidget.layout().addWidget(descriptionText, 0, Qt.AlignTop);
-  // webWidget.setWidget(descriptionText);
-
-  ui.tabWidget.removeTab(1);
-  ui.tabWidget.removeTab(0);
 
   // set default expanded size to half the splitter size
-  storeTab.storeSplitter.setSizes([storeTab.storeSplitter.width / 2, storeTab.storeSplitter.width / 2]);
-  var storeTabState = storeTab.storeSplitter.saveState();
-  storeTab.storeSplitter.setSizes([storeTab.storeSplitter.width, 0]);
+  log(storeFrame.storeSplitter.width)
+  storeFrame.storeSplitter.setSizes([storeFrame.width/2, storeFrame.width/2]);
+  var storeFrameState = storeFrame.storeSplitter.saveState();
+  storeFrame.storeSplitter.setSizes([storeFrame.storeSplitter.width, 0]);
 
-  // Setup register panel --------------------------------------------
-  
-  var registerPanel = registerTab.registerScroll.widget().registerForm;
-  var registerDescription = registerPanel.descriptionSplitter.widget(0);
-  var htmlPreview = registerPanel.descriptionSplitter.widget(1);
-  // registerPanel.descriptionSplitter.widget(1).setWidgetResizable(true);
-  registerPanel.descriptionSplitter.setSizes([registerPanel.descriptionSplitter.width, 0]);
-
-  // create the webview programmatically
-  var descriptionPreview = new QWebView();
-  descriptionPreview.setStyleSheet(webPreviewsStyleSheet);
-  descriptionPreview.setMinimumSize(0,0);
-  descriptionPreview.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum);
-  var previewSettings = descriptionPreview.settings();
-  previewSettings.setFontFamily(QWebSettings.StandardFont, webPreviewsFontFamily);
-  previewSettings.setFontSize(QWebSettings.DefaultFontSize, webPreviewsFontSize);
-
-  // setup the scrollArea containing the webview
-  htmlPreview.setLayout(new QVBoxLayout());
-  htmlPreview.layout().setContentsMargins(0,0,0,0);
-  htmlPreview.layout().addWidget(descriptionPreview, 0, Qt.AlignTop);
-  // htmlPreview.setWidget(descriptionPreview);
-
-  registerDescription.textChanged.connect(this, function () {
-    descriptionPreview.setHtml(registerDescription.document().toPlainText())
-  })
+  storeFrame.hide();
 
   // load store button------------------------------------------------
 
   // Subclass TreeWidgetItem 
   function ExtensionItem(extension) {
-    QTreeWidgetItem.call(this, [extension.name, "", extension.version], 1024);
+    QTreeWidgetItem.call(this, [extension.name + " v"+extension.version, ""], 1024);
     // store the extension id in the item
     this.setData(0, Qt.UserRole, extension.id);
 
@@ -144,7 +110,7 @@ function initStoreUI() {
 
   // update the list of extensions
   function updateStoreList() {
-    var filter = storeTab.searchStore.text;
+    var filter = storeFrame.searchStore.text;
     var repos = store.repositories;
 
     if (extensionsList.selectedItems().length > 0) {
@@ -159,7 +125,7 @@ function initStoreUI() {
     // populate the extension list
     for (var i in repos) {
       var extensions = repos[i].extensions.filter(function (x) {
-        if (storeTab.showInstalledCheckbox.checked && !localList.isInstalled(x)) return false;
+        if (storeFrame.showInstalledCheckbox.checked && !localList.isInstalled(x)) return false;
         return x.matchesSearch(filter);
       })
 
@@ -178,27 +144,26 @@ function initStoreUI() {
   }
 
   // connect store init to load button
-  aboutTab.loadStoreButton.clicked.connect(this, function () {
-    ui.tabWidget.insertTab(0, registerTab, registerLabel);
-    ui.tabWidget.insertTab(0, storeTab, storeLabel);
-    ui.tabWidget.setCurrentWidget(storeTab);
+  aboutFrame.loadStoreButton.clicked.connect(this, function () {
+    storeFrame.show();
+    aboutFrame.hide();
     updateStoreList();
   })
 
   // filter the store list --------------------------------------------
-  storeTab.searchStore.textChanged.connect(this, function () {
+  storeFrame.searchStore.textChanged.connect(this, function () {
     updateStoreList();
   })
 
   // filter by installed only -----------------------------------------
-  storeTab.showInstalledCheckbox.toggled.connect(this, function () {
+  storeFrame.showInstalledCheckbox.toggled.connect(this, function () {
     updateStoreList();
   })
 
   // Clear search button ----------------------------------------------
-  storeTab.storeClearSearch.setStyleSheet("QToolButton { background-color: black }")
-  storeTab.storeClearSearch.clicked.connect(this, function () {
-    storeTab.searchStore.text = "";
+  storeFrame.storeClearSearch.setStyleSheet("QToolButton { background-color: black }")
+  storeFrame.storeClearSearch.clicked.connect(this, function () {
+    storeFrame.searchStore.text = "";
   })
 
 
@@ -214,14 +179,33 @@ function initStoreUI() {
 
     // update install button to reflect wether or not the extension is already installed
     // storeDescriptionPanel.installButton
+    if (localList.isInstalled(extension)) {
+      var localExtension = localList.extensions[extension.id];
+      if (!localExtension.currentVersionIsOlder(extension.version)){
+        storeDescriptionPanel.installButton.removeAction(installAction)
+        storeDescriptionPanel.installButton.removeAction(updateAction)
+        storeDescriptionPanel.installButton.setDefaultAction(uninstallAction)
+      }else{
+        //change to update?
+        // installAction.setText("Update")
+        storeDescriptionPanel.installButton.removeAction(installAction)
+        storeDescriptionPanel.installButton.removeAction(uninstallAction)
+        storeDescriptionPanel.installButton.setDefaultAction(updateAction)
+      }
+    }else{
+      // installAction.setText("Install")
+      storeDescriptionPanel.installButton.removeAction(uninstallAction)
+      storeDescriptionPanel.installButton.removeAction(updateAction)
+      storeDescriptionPanel.installButton.setDefaultAction(installAction)
+    }
   }
 
   extensionsList.itemSelectionChanged.connect(this, function () {
     var selection = extensionsList.selectedItems();
-    if (storeTab.storeSplitter.sizes()[1] != 0) storeTabState = storeTab.storeSplitter.saveState();
+    if (storeFrame.storeSplitter.sizes()[1] != 0) storeFrameState = storeFrame.storeSplitter.saveState();
 
     if (selection.length > 0 && selection[0].type() != 0) {
-      storeTab.storeSplitter.restoreState(storeTabState);
+      storeFrame.storeSplitter.restoreState(storeFrameState);
       var id = selection[0].data(0, Qt.UserRole);
       var extension = store.extensions[id];
 
@@ -229,7 +213,7 @@ function initStoreUI() {
       updateStoreDescription(extension);
     } else {
       // collapse description
-      storeTab.storeSplitter.setSizes([storeTab.storeSplitter.width, 0]);
+      storeFrame.storeSplitter.setSizes([storeFrame.storeSplitter.width, 0]);
     }
   })
 
@@ -247,9 +231,7 @@ function initStoreUI() {
 
 
   // Install Button ----------------------------------------------
-  var installAction = new QAction("Install", this);
-
-  installAction.triggered.connect(this, function () {
+  function installExtension() {
     var selection = extensionsList.selectedItems();
     if (selection.length == 0) return
     var id = selection[0].data(0, Qt.UserRole);
@@ -265,9 +247,14 @@ function initStoreUI() {
     }
     localList.refreshExtensions();
     updateStoreList();
-  })
+  }
+  
+  var installAction = new QAction("Install", this);
+  installAction.triggered.connect(this, installExtension)
 
-  storeDescriptionPanel.installButton.setDefaultAction(installAction);
+  var updateAction = new QAction("Update", this);
+  updateAction.triggered.connect(this, installExtension)
+  // storeDescriptionPanel.installButton.setDefaultAction(installAction);
 
   // Install Button ----------------------------------------------
   var uninstallAction = new QAction("Uninstall", this);
@@ -291,6 +278,38 @@ function initStoreUI() {
   })
 
   ui.show();
+
+
+  function registerExtension(){
+    // Setup register panel --------------------------------------------
+    
+    var registerPanel = registerTab.registerScroll.widget().registerForm;
+    var registerDescription = registerPanel.descriptionSplitter.widget(0);
+    var htmlPreview = registerPanel.descriptionSplitter.widget(1);
+    // registerPanel.descriptionSplitter.widget(1).setWidgetResizable(true);
+    registerPanel.descriptionSplitter.setSizes([registerPanel.descriptionSplitter.width, 0]);
+
+    // create the webview programmatically
+    var descriptionPreview = new QWebView();
+    descriptionPreview.setStyleSheet(webPreviewsStyleSheet);
+    descriptionPreview.setMinimumSize(0,0);
+    descriptionPreview.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum);
+    var previewSettings = descriptionPreview.settings();
+    previewSettings.setFontFamily(QWebSettings.StandardFont, webPreviewsFontFamily);
+    previewSettings.setFontSize(QWebSettings.DefaultFontSize, webPreviewsFontSize);
+
+    // setup the scrollArea containing the webview
+    htmlPreview.setLayout(new QVBoxLayout());
+    htmlPreview.layout().setContentsMargins(0,0,0,0);
+    htmlPreview.layout().addWidget(descriptionPreview, 0, Qt.AlignTop);
+    // htmlPreview.setWidget(descriptionPreview);
+
+    registerDescription.textChanged.connect(this, function () {
+      descriptionPreview.setHtml(registerDescription.document().toPlainText())
+    })
+
+  }
+
 
   function log() {
     var message = []

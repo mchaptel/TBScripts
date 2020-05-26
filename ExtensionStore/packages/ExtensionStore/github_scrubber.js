@@ -678,7 +678,7 @@ LocalExtensionList.prototype.uninstall = function (extension) {
     for (var i in files) {
       (new File(files[i])).remove();
     }
-    if (extension.package.isPackage) Dir.rmdir(this.installFolder+"packages/" + extension.name)
+    if (extension.package.isPackage) (Dir(this.installFolder+"packages/" + extension.name)).rmdir();
     this.removeFromList(extension);
 
     return true;

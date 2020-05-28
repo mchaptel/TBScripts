@@ -642,6 +642,22 @@ LocalExtensionList.prototype.isInstalled = function (extension) {
 
 
 /**
+ * Checks the integrity of the files of the locally installed extension
+ */
+LocalExtensionList.prototype.checkFiles = function (extension) {
+  if (! this.isInstalled(extension)) return false;
+  var localExtension = this.extensions[extension.id];
+  var files = localExtension.package.localFiles;
+
+  for (var i in files){
+    if (!(new File(files[i])).exists) return false;
+  }
+
+  return true;
+}
+
+
+/**
  * Installs the extension
  * @returns {bool}  the success of the installation
  */
@@ -673,14 +689,17 @@ LocalExtensionList.prototype.uninstall = function (extension) {
   if (!this.isInstalled(extension)) return // extension isn't installed, can't uninstall
   var localExtension = this.extensions[extension.id];
 
-  try {  
+  try {
     var files = localExtension.package.localFiles;
     for (var i in files) {
-      (new File(files[i])).remove();
+      var file = new File(files[i])
+      if (file.exists) file.remove();
     }
-    if (extension.package.isPackage) (Dir(this.installFolder+"packages/" + extension.name)).rmdir();
+    if (extension.package.isPackage) {
+      var folder = Dir(this.installFolder + "packages/" + extension.name);
+      if (folder.exists) folder.rmdir();
+    }
     this.removeFromList(extension);
-
     return true;
   } catch (err) {
     log(err.lineNumber + " : " + err);

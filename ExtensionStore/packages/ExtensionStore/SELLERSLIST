@@ -1,14 +1,4 @@
 [
-  {
-    "name" : "mchaptel",
-    "website" : "https://github.com/mchaptel/TBScripts/",
-    "social" : "",
-    "repository" : "https://github.com/mchaptel/TBScripts/"
-  },
-  {
-    "name" : "Chenap",
-    "website" : "https://github.com/jonathan-fontaine/TBScripts/",
-    "social" : "",
-    "repository" : "https://github.com/jonathan-fontaine/TBScripts/"
-  }
+  "https://github.com/mchaptel/TBScripts/",
+  "https://github.com/jonathan-fontaine/TBScripts/"
 ]

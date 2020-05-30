@@ -1,16 +1,19 @@
-
 var webQuery = new NetworkConnexionHandler();
+
+Logger.level = 2;
 
 function test() {
   var store = new Store()
-  var localList = new LocalExtensionList();
+  var localList = new LocalExtensionList(store);
   var extensions = store.extensions;
+
+  var log = new Logger ("testing")
 
   // log(extensions.map(function (x) { return JSON.stringify(x.package, null, "  ") }));
 
   for (var i in extensions) {
-    log(JSON.stringify(extensions[i].package, null, "  "))
-    log("is extension " + store.extensions[i].name + " installed? " + localList.isInstalled(store.extensions[i]))
+    log.debug(JSON.stringify(extensions[i].package, null, "  "))
+    log.log("is extension " + store.extensions[i].name + " installed? " + localList.isInstalled(store.extensions[i]))
     //log(store.extensions[i].install());
   }
 }
@@ -23,7 +26,9 @@ function test() {
  * The Store class is used to search the github repos for available extensions
  */
 function Store() {
-  log("init store")
+  this.log = new Logger ("Store")
+  this.log.log("init store")
+
 }
 
 
@@ -34,11 +39,11 @@ function Store() {
 Object.defineProperty(Store.prototype, "sellers", {
   get: function () {
     if (typeof this._sellers === 'undefined') {
-      log("getting sellers");
+      this.log.debug("getting sellers");
       var sellersFile = "https://raw.githubusercontent.com/mchaptel/TBScripts/master/ExtensionStore/packages/ExtensionStore/SELLERSLIST";
       try {
         var sellersList = webQuery.get(sellersFile);
-        log(sellersList)
+        this.log.debug(sellersList)
       } catch (err) {
         throw new Error("invalid SELLERSLIST file");
       }
@@ -56,7 +61,7 @@ Object.defineProperty(Store.prototype, "sellers", {
 Object.defineProperty(Store.prototype, "repositories", {
   get: function () {
     if (typeof this._repositories === 'undefined') {
-      log("getting repositories");
+      this.log.debug("getting repositories");
       var sellers = this.sellers;
       var repositories = [];
 
@@ -79,7 +84,7 @@ Object.defineProperty(Store.prototype, "repositories", {
 Object.defineProperty(Store.prototype, "extensions", {
   get: function () {
     if (typeof this._extensions === 'undefined') {
-      log("getting the list of  available extensions.")
+      this.log.debug("getting the list of  available extensions.")
       var repos = this.repositories;
       var extensions = [];
       this._extensions = {};
@@ -101,6 +106,40 @@ Object.defineProperty(Store.prototype, "extensions", {
 })
 
 
+/**
+ * The extension object representing the store
+ */
+Object.defineProperty(Store.prototype, "storeExtension", {
+  get: function () {
+    if (typeof this._storeExtension === 'undefined') {
+      var storePackage = webQuery.get("https://raw.githubusercontent.com/mchaptel/TBScripts/master/ExtensionStore/packages/ExtensionStore/tbpackage.json")
+      this._storeRepository = new Repository(storePackage.repository)
+      this._storeExtension = new Extension(this._storeRepository, storePackage);
+    }
+    return this._storeExtension
+  }
+})
+
+
+
+/**
+ * The contents of the local tbpackage.json file
+ */
+Object.defineProperty(Store.prototype, "localPackage", {
+  get: function () {
+    if (typeof this._localPackage === 'undefined') {
+      this._localPackage == {}
+      
+      var packageFile = currentFolder+"/tbpackage.json";
+      var storePackage = readFile(packageFile);
+      if (storePackage == null) return null;
+      this._localPackage = JSON.parse(storePackage);
+    }
+    return this._localPackage;
+  }
+})
+
+
 // Seller Class ------------------------------------------------
 /**
  * @constructor
@@ -109,16 +148,14 @@ Object.defineProperty(Store.prototype, "extensions", {
  * However, each seller has to use a single tbpackage.json file to keep track of them.
  * This file will be used by the store to identify the extensions made by that seller.
  * Note: even though the nomenclature suggests it, there is no money transaction involved.
- * @param {Object} package
- * @param {String} masterRepository 
+ * @param {Object} sellerPackage
  */
-function Seller(masterRepository) {
-  log("init seller " + masterRepository)
-  this._url = masterRepository;
+function Seller(sellerPackage) {
+  this.log = new Logger ("Seller")
+  this.sellerPackage = sellerPackage;
+  this._url = sellerPackage.repository;
   this.masterRepositoryName = this._url.replace("https://github.com/", "")
-  log(this.masterRepositoryName)
-  this.name = this.masterRepositoryName.split("/")[0];
-  log("init seller " + this.name)
+  this.name = sellerPackage.name;
 }
 
 
@@ -139,24 +176,23 @@ Object.defineProperty(Seller.prototype, "dlUrl", {
  */
 Object.defineProperty(Seller.prototype, "package", {
   get: function () {
-    log("getting package for " + this.name)
+    this.log.debug("getting package for " + this.name)
     if (typeof this._tbpackage === 'undefined') {
       this._tbpackage = {}
-      log(this.dlUrl)
       var tbpackage = webQuery.get(this.dlUrl + "tbpackage.json")
 
       if (tbpackage.hasOwnProperty("message")) {
         if (tbpackage.message == "Not Found") {
-          log("Package file not present in repository : " + this._url);
+          this.log.error("Package file not present in repository : " + this._url);
           return null;
         }
         if (tbpackage.message == "400: Invalid request") {
-          log("Couldn't reach repository : " + this._url + ". Make sure it is a valid github address.")
+          this.log.error("Couldn't reach repository : " + this._url + ". Make sure it is a valid github address.")
           return null;
         }
       }
 
-      log(JSON.stringify(tbpackage, null, "  "))
+      this.log.debug(JSON.stringify(tbpackage, null, "  "))
       this._tbpackage = tbpackage;
     }
     return this._tbpackage
@@ -170,7 +206,7 @@ Object.defineProperty(Seller.prototype, "package", {
  */
 Object.defineProperty(Seller.prototype, "repositories", {
   get: function () {
-    log("getting seller repositories for seller " + this.name)
+    this.log.debug("getting seller repositories for seller " + this.name)
     if (typeof this._repositories === 'undefined') {
       this._repositories = [];
       var tbpackage = this.package;
@@ -202,7 +238,7 @@ Object.defineProperty(Seller.prototype, "repositories", {
  */
 Object.defineProperty(Seller.prototype, "extensions", {
   get: function () {
-    log("getting extensions from seller " + this.name)
+    this.log.debug("getting extensions from seller " + this.name)
     if (typeof this._extensions === 'undefined') {
       var extensions = []
       for (var i in this.repositories) {
@@ -225,6 +261,7 @@ Object.defineProperty(Seller.prototype, "extensions", {
  * @property {Object}  contents       parsed json from the api query
  */
 function Repository(url) {
+  this.log = new Logger ("Repository")
   this._url = url;
   this.name = this._url.replace("https://github.com/", "")
 }
@@ -262,17 +299,17 @@ Object.defineProperty(Repository.prototype, "dlUrl", {
  */
 Object.defineProperty(Repository.prototype, "package", {
   get: function () {
-    log("getting repos package for repo " + this.apiUrl);
+    this.log.debug("getting repos package for repo " + this.apiUrl);
     if (typeof this._package === 'undefined') {
       var tbpackage = webQuery.get(this.dlUrl + "tbpackage.json");
 
       if (tbpackage.hasOwnProperty("message")) {
         if (tbpackage.message == "Not Found") {
-          log("Package file not present in repository : " + this._url);
+          this.log.error("Package file not present in repository : " + this._url);
           return null;
         }
         if (tbpackage.message == "400: Invalid request") {
-          log("Couldn't reach repository : " + this._url + ". Make sure it is a valid github address.")
+          this.log.error("Couldn't reach repository : " + this._url + ". Make sure it is a valid github address.")
           return null;
         }
       }
@@ -291,7 +328,7 @@ Object.defineProperty(Repository.prototype, "package", {
  */
 Object.defineProperty(Repository.prototype, "contents", {
   get: function () {
-    log("getting repos contents for repo " + this.apiUrl);
+    this.log.debug("getting repos contents for repo " + this.apiUrl);
     if (typeof this._contents === 'undefined') {
       var contents = webQuery.get(this.tree + "?recursive=true");
       if (contents) this._contents = contents;
@@ -309,7 +346,7 @@ Object.defineProperty(Repository.prototype, "contents", {
  */
 Object.defineProperty(Repository.prototype, "extensions", {
   get: function () {
-    log("getting repos extensions for repo " + this.apiUrl);
+    this.log.debug("getting repos extensions for repo " + this.apiUrl);
     if (typeof this._extensions === 'undefined') {
       this._extensions = [];
 
@@ -378,7 +415,7 @@ Repository.prototype.getFiles = function (folder, filter) {
     filter = RegExp(filter, "i");            // add ignore case flag and convert string to regex
   }
 
-  log("getting files inside " + folder + " that match filter " + filter)
+  this.log.debug("getting files inside " + folder + " that match filter " + filter)
 
   var url = this.apiUrl + "contents/" + folder;
 
@@ -402,6 +439,7 @@ Repository.prototype.getFiles = function (folder, filter) {
  * @param {object} tbpackage     The part of a tbpackage object describing this extension
  */
 function Extension(repository, tbpackage) {
+  this.log = new Logger ("Extension")
   this.repository = repository
   this.name = tbpackage.name;
   this.version = tbpackage.version;
@@ -410,7 +448,7 @@ function Extension(repository, tbpackage) {
 
 
 /**
- * The complete list of files corresponding to this extension
+ * The highest level folder on the repository that includes files included in this extension
  * @name Extension#rootFolder
  * @type {object}
  */
@@ -481,8 +519,9 @@ Object.defineProperty(Extension.prototype, "files", {
 
 
 /**
- * @name Extension#localPaths
- * @type {string[]}
+ * The id of this extension. Made of the repo name+extension name; 
+ * @name Extension#id
+ * @type {string}
  */
 Object.defineProperty(Extension.prototype, "id", {
   get: function () {
@@ -494,7 +533,9 @@ Object.defineProperty(Extension.prototype, "id", {
   }
 })
 
+
 /**
+ * The list of the locations where all the extension files would be installed
  * @name Extension#localPaths
  * @type {string[]}
  */
@@ -562,10 +603,13 @@ Extension.prototype.currentVersionIsOlder = function (version) {
 /**
  * @classdesc
  * The LocalExtensionList holds the locally installed extensions list and updates it.
+ * @param {Store}   store    the store object that contains the available extensions
  */
-function LocalExtensionList() {
-  this._installFolder = specialFolders.userScripts + "/";   // default install folder, can be modified with installFolder property
+function LocalExtensionList(store) {
+  this.log = new Logger ("LocalExtensionList")
+  this._installFolder = specialFolders.userScripts + "/";             // default install folder, can be modified with installFolder property
   this._listFile = specialFolders.userConfig + "/.extensionsList";
+  // if (this.list.length == 0) this.createListFile(store);              // initialize the list file that contains the extensions (!heavy! CBB: do it at a different time?)
 }
 
 
@@ -590,7 +634,7 @@ Object.defineProperty(LocalExtensionList.prototype, "installFolder", {
  */
 Object.defineProperty(LocalExtensionList.prototype, "extensions", {
   get: function () {
-    log("getting list of locally installed extensions")
+    this.log.debug("getting list of locally installed extensions")
     if (typeof this._extensions === 'undefined') {
       this._extensions = {};
 
@@ -598,7 +642,7 @@ Object.defineProperty(LocalExtensionList.prototype, "extensions", {
       if (!list) return this._extensions;
       var extensions = list.map(function (x) { return new Extension("local", x) })
       for (var i in extensions) {
-        log("installed extension " + extensions[i].id)
+        this.log.debug("found installed extension " + extensions[i].id)
         this._extensions[extensions[i].id] = extensions[i];
       }
     }
@@ -608,6 +652,7 @@ Object.defineProperty(LocalExtensionList.prototype, "extensions", {
 
 
 /**
+ * The contents of the local .extensionList file
  * @name LocalExtensionList#list
  * @type {string}
  */
@@ -623,13 +668,21 @@ Object.defineProperty(LocalExtensionList.prototype, "list", {
         var json = JSON.parse(list);
         this._list = json;
       } catch (error) {
-        log("Couldn't parse extension list. List file might be corrupted.");
+        this.log.error("Couldn't parse extension list. List file might be corrupted.");
         //make a backup and delete?
       }
     }
     return this._list;
   }
 });
+
+
+/**
+ * gets the install location for a given extension
+ */
+LocalExtensionList.prototype.installLocation = function (extension) {
+  return this.installFolder + (extension.package.isPackage ? "packages/" + extension.name + "/" : "")
+}
 
 
 /**
@@ -645,11 +698,11 @@ LocalExtensionList.prototype.isInstalled = function (extension) {
  * Checks the integrity of the files of the locally installed extension
  */
 LocalExtensionList.prototype.checkFiles = function (extension) {
-  if (! this.isInstalled(extension)) return false;
+  if (!this.isInstalled(extension)) return false;
   var localExtension = this.extensions[extension.id];
   var files = localExtension.package.localFiles;
 
-  for (var i in files){
+  for (var i in files) {
     if (!(new File(files[i])).exists) return false;
   }
 
@@ -662,21 +715,21 @@ LocalExtensionList.prototype.checkFiles = function (extension) {
  * @returns {bool}  the success of the installation
  */
 LocalExtensionList.prototype.install = function (extension) {
-  if (extension.repository == "local") return; // extension is already installed
+  // if (this.isInstalled(extension)) return true;         // extension is already installed
   var downloader = new ExtensionDownloader(extension);  // dedicated object to implement threaded download later
-  var installLocation = this.installFolder + (extension.package.isPackage ? "packages/" + extension.name + "/" : "")
+  var installLocation = this.installLocation(extension)
 
   try {
     var files = downloader.downloadFiles();
-    log("downloaded files :\n" + files.join("\n"));
+    this.log.debug("downloaded files :\n" + files.join("\n"));
     var tempFolder = files[0];
     // move the files into the script folder or package folder
     recursiveFileCopy(tempFolder, installLocation);
-    this.addToList(extension, installLocation); // create a record of this installation
+    this.addToList(extension); // create a record of this installation
 
     return true;
   } catch (err) {
-    log(err.lineNumber + " : " + err);
+    this.log.error(err.lineNumber + " : " + err);
     return false;
   }
 }
@@ -686,7 +739,7 @@ LocalExtensionList.prototype.install = function (extension) {
  * Remove the installation from the hard drive
  */
 LocalExtensionList.prototype.uninstall = function (extension) {
-  if (!this.isInstalled(extension)) return // extension isn't installed, can't uninstall
+  if (!this.isInstalled(extension)) return true    // extension isn't installed
   var localExtension = this.extensions[extension.id];
 
   try {
@@ -702,7 +755,7 @@ LocalExtensionList.prototype.uninstall = function (extension) {
     this.removeFromList(extension);
     return true;
   } catch (err) {
-    log(err.lineNumber + " : " + err);
+    this.log.error(err.lineNumber + " : " + err);
     return false;
   }
 }
@@ -711,16 +764,18 @@ LocalExtensionList.prototype.uninstall = function (extension) {
 /**
  * Adds an extension to the installed list
  */
-LocalExtensionList.prototype.addToList = function (extension, installLocation) {
+LocalExtensionList.prototype.addToList = function (extension) {
   var installList = this.list;
   var installedPackage = deepCopy(extension.package);
+  var installLocation = this.installLocation(extension)
 
   var files = extension.localPaths.map(function (x) { return installLocation + x });
 
+  installedPackage.id = extension.id;
   installedPackage.localFiles = files;
 
   if (!this.isInstalled(extension)) {
-    log("adding to installed list " + extension.name);
+    this.log.debug("adding to installed list " + extension.name);
     installList.push(installedPackage);
   } else {
     // if already installed, we update instead
@@ -761,6 +816,46 @@ LocalExtensionList.prototype.removeFromList = function (extension) {
 LocalExtensionList.prototype.refreshExtensions = function () {
   delete this._extensions;
   var extensions = this.extensions;
+  return extensions;
+}
+
+
+
+/**
+ * goes through the store extensions and checks whether it is already installed even if not in the list
+ */
+LocalExtensionList.prototype.findInstalledExtensions = function (store) {
+  var installedExtensions = [];
+  for (var i in store.extensions) {
+    var extension = store.extensions[i];
+    var destPath = this.installLocation(extension);
+    var extensionFiles = extension.localPaths.map(function (x) { return destPath + x });
+    for (var i in extensionFiles) {
+      if (new File(extensionFiles[i]).exists) {
+        // found an extension, we add it to the list
+        installedExtensions.push(extension);
+        continue;
+      }
+    }
+  }
+  return installedExtensions;
+}
+
+
+/**
+ * Creates a default list file by detecting existing extensions and adding the store extension
+ * @param {Store} store    the store that contains extensions
+ */
+LocalExtensionList.prototype.createListFile = function (store) {
+  var list = this.list;
+  if (list.length == 0) this.addToList(store.storeExtension);
+  var installedExtensions = this.findInstalledExtensions(store);
+  for (var i in installedExtensions) {
+    // isInstalled checks if the extension is in the list, so we'll use this to detect if we need
+    if (!this.isInstalled(installedExtensions[i])) this.addToList(installedExtensions[i])
+  }
+  this.refreshExtensions();  // reload our list and updates the extensions list
+  return this.list
 }
 
 
@@ -770,6 +865,8 @@ LocalExtensionList.prototype.refreshExtensions = function () {
  * @constructor
  */
 function ExtensionDownloader(extension) {
+  this.log = new Logger ("ExtensionDownloader")
+  this.log.level = this.log.LEVEL.LOG;
   this.repository = extension.repository;
   this.extension = extension;
   this.destFolder = specialFolders.temp + "/" + extension.name + "_" + extension.version + "/";
@@ -781,10 +878,9 @@ function ExtensionDownloader(extension) {
  * @returns [string[]]    an array of paths of the downloaded files location, as well as the destination folder at index 0 of the array.
  */
 ExtensionDownloader.prototype.downloadFiles = function () {
-  log("starting download of files from extension " + this.extension.name);
+  this.log.log("starting download of files from extension " + this.extension.name);
   var destFolder = this.destFolder;
-  log(this.extension
-    instanceof Extension)
+  this.log.debug(this.extension instanceof Extension)
   var destPaths = this.extension.localPaths.map(function (x) { return destFolder + x });
   var dlFiles = [this.destFolder];
 
@@ -802,7 +898,7 @@ ExtensionDownloader.prototype.downloadFiles = function () {
     var dlFile = new File(destPaths[i]);
     if (dlFile.size == files[i].size) {
       // download complete!
-      log("successfully downloaded " + files[i].name + " to location : " + destPaths[i])
+      this.log.log("successfully downloaded " + files[i].name + " to location : " + destPaths[i])
       dlFiles.push(destPaths[i])
     } else {
       throw new Error("Downloaded file " + destPaths[i] + " size does not match expected size : " + dlFile.size + " " + files[i].size)
@@ -838,7 +934,7 @@ NetworkConnexionHandler.prototype.get = function (command) {
     return json;
   }
   catch (error) {
-    log("command " + command + " did not return a valid JSON : " + result);
+    this.curl.log.error("command " + command + " did not return a valid JSON : " + result);
     return { error: error, message: result };
   }
 }
@@ -862,6 +958,7 @@ NetworkConnexionHandler.prototype.download = function (url, destinationPath) {
  * @param {string[]} command
  */
 function CURL() {
+  this.log = new Logger("CURL")
 }
 
 
@@ -884,7 +981,7 @@ CURL.prototype.query = function (query, wait) {
     var p = new QProcess();
     var bin = this.bin;
 
-    log("starting process :" + bin + " " + command);
+    this.log.debug("starting process :" + bin + " " + command);
     var command = ["-H", "Authorization: Bearer YOUR_JWT", "-H", "Content-Type: application/json", "-X", "POST", "-d"];
     query = query.replace(/\n/gm, "\\\\n").replace(/"/gm, '\\"');
     command.push('" \\\\n' + query + '"');
@@ -900,7 +997,7 @@ CURL.prototype.query = function (query, wait) {
 
     return output;
   } catch (err) {
-    log(err);
+    this.log.error(err);
     return null;
   }
 }
@@ -918,18 +1015,18 @@ CURL.prototype.get = function (command, wait) {
     // The toonboom bundled curl doesn't seem to be equiped for ssh so we have to use unsafe mode
     if (bin.indexOf("ToonBoom") != -1) command = ["-k"].concat(command)
 
-    log("starting process :" + bin + " " + command);
+    this.log.debug("starting process :" + bin + " " + command);
     p.start(bin, command);
 
     p.waitForFinished(wait);
 
     var readOut = p.readAllStandardOutput();
     var output = new QTextStream(readOut).readAll();
-    log("json: " + output);
+    this.log.debug("json: " + output);
 
     return output;
   } catch (err) {
-    log(err);
+    this.log.error(err);
     return null;
   }
 }
@@ -941,7 +1038,7 @@ CURL.prototype.get = function (command, wait) {
  */
 Object.defineProperty(CURL.prototype, "bin", {
   get: function () {
-    log("getting curl bin")
+    this.log.debug("getting curl bin")
 
     if (typeof CURL.__proto__.bin === 'undefined') {
       if (about.isWindowsArch()) {
@@ -965,18 +1062,58 @@ Object.defineProperty(CURL.prototype, "bin", {
 })
 
 
-// Helper functions ---------------------------------------------------
-
 // log a series of values to the messageLog and command line window. Can pass as many arguments as necessary.
-function log() {
-  var message = []
-  for (var i = 0; i < arguments.length; i++) {
-    message.push(arguments[i])
-  }
-  MessageLog.trace(message.join(" "));
-  System.println(message.join(" "));
+
+// Logger class -------------------------------------------------------
+/**
+ * @constructor
+ * @classdesc
+ * The Logger class allows to output messages to the log with different levels
+ * @param {string} [name]
+ */
+function Logger(name) {
+  if (typeof name === 'undefined') var name = "";
+  this.name = name;
+  // by default will only output errors and log
+  this.LEVEL = { "ERROR": 0, "LOG": 1, "DEBUG": 2 }
+  if (typeof Logger.level === 'undefined') Logger.level = this.LEVEL.LOG;
 }
 
+
+/**
+ * Outputs a message only if the logger is set to output a level of verbosity equal to ERROR
+ */
+Logger.prototype.log = function () {
+  if (Logger.level >= this.LEVEL.LOG) this.trace([].slice.call(arguments))
+}
+
+/**
+ * Outputs a message only if the logger is set to output a level of verbosity equal to ERROR
+ */
+Logger.prototype.debug = function () {
+  if (Logger.level >= this.LEVEL.DEBUG) this.trace([].slice.call(arguments))
+}
+
+
+/**
+ * Outputs a message only if the logger is set to output a level of verbosity equal to ERROR
+ */
+Logger.prototype.error = function () {
+  if (Logger.level >= this.LEVEL.ERROR) this.trace([].slice.call(arguments))
+}
+
+
+/**
+ * Outputs the given message. Used internally.
+ */
+Logger.prototype.trace = function (message) {
+  if (this.name) var message = this.name+": "+message.join(" ")
+  MessageLog.trace(message);
+  System.println(message);
+}
+
+
+// Helper functions ---------------------------------------------------
 
 // reads a local file and return the contents
 function readFile(filename) {
@@ -996,9 +1133,10 @@ function readFile(filename) {
 
 // writes the contents to the specified filename.
 function writeFile(filename, content, append) {
+  var log = new Logger ("helpers")
   if (typeof append === 'undefined') var append = false;
 
-  log("writing file " + filename)
+  log.debug("writing file " + filename)
 
   var file = new File(filename);
   try {
@@ -1016,6 +1154,7 @@ function writeFile(filename, content, append) {
 
 // returns the folder of this file
 var currentFolder = __file__.split("/").slice(0, -1).join("/");
+if (currentFolder.indexOf("repo")== -1) Logger.level = 1;   // disable logging if extension isn't in a repository
 
 
 // make a deep copy of an object
@@ -1036,7 +1175,8 @@ function deepCopy(object) {
 
 // recursive copy of folders content
 function recursiveFileCopy(folder, destination) {
-  log("copying files from folder " + folder + " to destination " + destination)
+  var log = new Logger ("helpers")
+  log.debug("copying files from folder " + folder + " to destination " + destination)
   try {
     var p = new QProcess();
 
@@ -1055,11 +1195,11 @@ function recursiveFileCopy(folder, destination) {
 
     var readOut = p.readAllStandardOutput();
     var output = new QTextStream(readOut).readAll();
-    log("copy results: " + output);
+    log.debug("copy results: " + output);
 
     return output;
   } catch (err) {
-    log(err);
+    log.error(err);
     return null;
   }
 }
@@ -1067,3 +1207,4 @@ function recursiveFileCopy(folder, destination) {
 
 exports.Store = Store;
 exports.LocalExtensionList = LocalExtensionList;
+exports.Logger = Logger;

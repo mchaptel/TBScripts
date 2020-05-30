@@ -1,6 +1,6 @@
 {
   "name": "ExtensionStore",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "compatibility": "Harmony Premium 16",
   "description": "An unofficial open source extension store for Harmony",
   "isPackage": "true",

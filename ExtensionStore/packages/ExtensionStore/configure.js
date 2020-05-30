@@ -28,12 +28,13 @@ function configure(packageFolder, packageName) {
 
 function initStoreUI() {
   var storelib = require("./github_scrubber.js");
+  var log = new storelib.Logger("UI")
   var store = new storelib.Store();
-  var localList = new storelib.LocalExtensionList();
+  var localList = new storelib.LocalExtensionList(store);
 
   /////// testing
-  /*var extensions = store.extensions  
-   // log(extensions.map(function(x){return JSON.stringify(x.package, null, "  ")}));
+  /*var extensions = store.extensions
+   log(extensions.map(function(x){return JSON.stringify(x.package, null, "  ")}));
  
    for (var i in extensions){
      log("is extension "+extensions[i].name+" installed? "+localList.isInstalled(extensions[i]))
@@ -41,15 +42,21 @@ function initStoreUI() {
    }*/
   ////////
 
+  // setting up UI ---------------------------------------------------
+
   var packageView = ScriptManager.getView("Extension Store");
   var ui = ScriptManager.loadViewUI(packageView, "./store.ui");
   ui.minimumWidth = UiLoader.dpiScale(350);
   ui.minimumHeight = UiLoader.dpiScale(400);
 
+  log.debug ("loading UI")
+
   // set ui and ui responses
   webPreviewsFontFamily = "Arial";
   webPreviewsFontSize = 12;
-  webPreviewsStyleSheet = "QWidget { background-color: lightGrey; }";
+  webPreviewsStyleSheet = "QWebView { background-color: lightGrey; }";
+
+  updateRibbonStyleSheet = "QWidget { background-color: blue; }";
 
   // disable store frame until store is loaded
   var storeFrame = ui.storeFrame;
@@ -61,9 +68,53 @@ function initStoreUI() {
   extensionsList.setColumnWidth(0, 220);
   extensionsList.setColumnWidth(1, 30);
 
-  
+  // check for updates -----------------------------------------------
+
+  if (localList.list.length > 0){
+    // we only do this if a local install List exists so as to not load the store until the user has clicked the button 
+    var storeExtension = store.storeExtension;
+    var installedStore = localList.extensions[storeExtension.id];
+    var currentVersion = installedStore.version;
+    var storeVersion = storeExtension.version;
+
+    function updateStore(){
+      var success = localList.install(storeExtension);
+      if (success){
+        MessageBox.information("Store succesfully updated to version v"+storeVersion+".\n\nPlease restart Harmony for changes to take effect.");
+        aboutFrame.updateRibbon.storeVersion.setText("v"+currentVersion);
+        aboutFrame.updateRibbon.setStyleSheet("");
+        aboutFrame.updateRibbon.updateButton.hide();
+      }else{
+        MessageBox.information("There was a problem updating to v"+storeVersion+".\n\n The update was not successful.");
+      }
+    }
+
+    // if a more recent version of the store exists on the repo, activate the update ribbon
+    if(installedStore.currentVersionIsOlder(storeVersion)){
+      aboutFrame.updateRibbon.storeVersion.setText("v"+currentVersion+"  ⓘ New version available: v"+storeVersion);
+      aboutFrame.updateRibbon.setStyleSheet(updateRibbonStyleSheet);
+      aboutFrame.updateRibbon.updateButton.toolTip = storeExtension.package.description;
+      aboutFrame.updateRibbon.updateButton.clicked.connect(updateStore);
+    }else{
+      aboutFrame.updateRibbon.updateButton.hide();
+      aboutFrame.updateRibbon.storeVersion.setText("v"+currentVersion+" ✓ - Store is up to date.")  
+    }
+
+    storeFrame.storeVersionLabel.setText("v"+currentVersion);
+  }else{
+    // in case of missing list file, we find out the current version by parsing the json ?
+    var json = store.localPackage;
+    if (json != null){
+      var currentVersion = json.version;
+      aboutFrame.updateRibbon.storeVersion.setText("v"+currentVersion);
+      storeFrame.storeVersionLabel.setText("v"+currentVersion);
+    }
+    aboutFrame.updateRibbon.updateButton.hide();
+  }
+
   // Setup description panel -----------------------------------------
-  
+  log.debug ("setting up store description panel")
+
   // create the webview programmatically
   var descriptionText = new QWebView();
   descriptionText.setStyleSheet(webPreviewsStyleSheet);
@@ -80,14 +131,13 @@ function initStoreUI() {
   webWidget.layout().addWidget(descriptionText, 0, Qt.AlignTop);
 
   // set default expanded size to half the splitter size
-  log(storeFrame.storeSplitter.width)
   storeFrame.storeSplitter.setSizes([storeFrame.width/2, storeFrame.width/2]);
   var storeFrameState = storeFrame.storeSplitter.saveState();
   storeFrame.storeSplitter.setSizes([storeFrame.storeSplitter.width, 0]);
 
   storeFrame.hide();
 
-  // load store button------------------------------------------------
+  // load store button -----------------------------------------------
 
   // Subclass TreeWidgetItem 
   function ExtensionItem(extension) {
@@ -98,8 +148,15 @@ function initStoreUI() {
     // add an icon in the middle column showing if installed and if update present
     if (localList.isInstalled(extension)) {
       var icon = "✓";
+      this.setToolTip(1, "Extension is installed correctly.")
       var localExtension = localList.extensions[extension.id];
-      if (localExtension.currentVersionIsOlder(extension.version)) icon = "↺";
+      if (localExtension.currentVersionIsOlder(extension.version)) {
+        icon = "↺";
+        this.setToolTip(1, "Update available.")
+      }else if (!localList.checkFiles(localExtension)){
+        icon = "!";
+        this.setToolTip(1, "Some files from this extension are missing.")
+      }
     } else {
       var icon = "✗";
     }
@@ -110,8 +167,10 @@ function initStoreUI() {
 
   // update the list of extensions
   function updateStoreList() {
+    if (localList.list.length == 0) localList.createListFile(store);
+
     var filter = storeFrame.searchStore.text;
-    var repos = store.repositories;
+    var sellers = store.sellers;
 
     if (extensionsList.selectedItems().length > 0) {
       var currentSelectionId = extensionsList.selectedItems()[0].data(0, Qt.UserRole)
@@ -123,21 +182,21 @@ function initStoreUI() {
     }
 
     // populate the extension list
-    for (var i in repos) {
-      var extensions = repos[i].extensions.filter(function (x) {
+    for (var i in sellers) {
+      var extensions = sellers[i].extensions.filter(function (x) {
         if (storeFrame.showInstalledCheckbox.checked && !localList.isInstalled(x)) return false;
         return x.matchesSearch(filter);
       })
 
       if (extensions.length == 0) continue;
 
-      var reposItem = new QTreeWidgetItem([repos[i].name], 0);
-      extensionsList.addTopLevelItem(reposItem);
-      reposItem.setExpanded(true);
+      var sellerItem = new QTreeWidgetItem([sellers[i].name], 0);
+      extensionsList.addTopLevelItem(sellerItem);
+      sellerItem.setExpanded(true);
 
       for (var j in extensions) {
         var extensionItem = new ExtensionItem(extensions[j]);
-        reposItem.addChild(extensionItem);
+        sellerItem.addChild(extensionItem);
         if (currentSelectionId && extensions[j].id == currentSelectionId) extensionItem.setSelected(true);
       }
     }
@@ -181,7 +240,7 @@ function initStoreUI() {
     // storeDescriptionPanel.installButton
     if (localList.isInstalled(extension)) {
       var localExtension = localList.extensions[extension.id];
-      if (!localExtension.currentVersionIsOlder(extension.version)){
+      if (!localExtension.currentVersionIsOlder(extension.version) && localList.checkFiles(extension)){
         storeDescriptionPanel.installButton.removeAction(installAction)
         storeDescriptionPanel.installButton.removeAction(updateAction)
         storeDescriptionPanel.installButton.setDefaultAction(uninstallAction)
@@ -200,6 +259,7 @@ function initStoreUI() {
     }
   }
 
+  // update and display the description panel when selection changes
   extensionsList.itemSelectionChanged.connect(this, function () {
     var selection = extensionsList.selectedItems();
     if (storeFrame.storeSplitter.sizes()[1] != 0) storeFrameState = storeFrame.storeSplitter.saveState();
@@ -237,7 +297,7 @@ function initStoreUI() {
     var id = selection[0].data(0, Qt.UserRole);
     var extension = store.extensions[id];
 
-    log("installing extension : " + extension.repository.name + extension.name)
+    log.log("installing extension : " + extension.repository.name + extension.name)
     // log(JSON.stringify(extension.package, null, "  "))
     var success = localList.install(extension);
     if (success) {
@@ -265,7 +325,7 @@ function initStoreUI() {
     var id = selection[0].data(0, Qt.UserRole);
     var extension = store.extensions[id];
 
-    log("uninstalling extension : " + extension.repository.name + extension.name)
+    log.log("uninstalling extension : " + extension.repository.name + extension.name)
     // log(JSON.stringify(extension.package, null, "  "))
     var success = localList.uninstall(extension);
     if (success) {
@@ -307,32 +367,6 @@ function initStoreUI() {
     registerDescription.textChanged.connect(this, function () {
       descriptionPreview.setHtml(registerDescription.document().toPlainText())
     })
-
-  }
-
-
-  function log() {
-    var message = []
-    for (var i = 0; i < arguments.length; i++) {
-      message.push(arguments[i])
-    }
-    try{
-      MessageLog.trace(message.join(" "));
-      System.println(message.join(" "));  
-    }catch(err){
-      MessageLog.trace(message)
-      MessageLog.trace("logging error : "+err)
-    }
-  }
-
-  function logWidgetHierarchy(widget, prefix) {
-    if (typeof prefix === 'undefined') prefix = "";
-    var children = widget.children
-    for (var i in children) {
-      var name = prefix + children[i].opbjectName()
-      log(name)
-      logWidgetHierarchy(children[i], prefix + children[i].opbjectName() + "/")
-    }
   }
 }
 

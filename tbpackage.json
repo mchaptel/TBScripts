@@ -1,20 +1,26 @@
-[
-  {
-    "name": "ScriptsShortcuts",
-    "version": "0.1.0",
-    "compatibility": "Harmony Premium 16",
-    "description": "This script allows users to add shortcuts to the scripts they have installed",
-    "isPackage": "true",
-    "repository": "https://github.com/mchaptel/TBScripts/",
-    "files": [
-      "ScriptsShortcuts/packages/ScriptsShortcuts/"
-    ],
-    "keywords": [
-      "shortcuts",
-      "package"
-    ],
-    "author": "Mathieu Chaptel",
-    "license": "MPL-2.0",
-    "website": "https://github.com/mchaptel/TBScripts/"
-  }
-]
+{
+  "name" : "Mathieu C",
+  "website" : "https://github.com/mchaptel/TBScripts/",
+  "social" : "",
+  "repository" : "https://github.com/mchaptel/TBScripts/",
+  "extensions": [
+    {
+      "name": "ScriptsShortcuts",
+      "version": "0.1.0",
+      "compatibility": "Harmony Premium 16",
+      "description": "This script allows users to add shortcuts to the scripts they have installed",
+      "isPackage": "true",
+      "repository": "https://github.com/mchaptel/TBScripts/",
+      "files": [
+        "ScriptsShortcuts/packages/ScriptsShortcuts/"
+      ],
+      "keywords": [
+        "shortcuts",
+        "package"
+      ],
+      "author": "Mathieu Chaptel",
+      "license": "MPL-2.0",
+      "website": "https://github.com/mchaptel/TBScripts/"
+    }
+  ]
+}

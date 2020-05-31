@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>555</width>
-    <height>532</height>
+    <width>496</width>
+    <height>655</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,13 +16,27 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QFormLayout" name="formLayout_3">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetMaximumSize</enum>
+     </property>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_7">
+       <property name="text">
+        <string>Github Url: </string>
+       </property>
+      </widget>
+     </item>
      <item row="0" column="1">
       <layout class="QHBoxLayout" name="horizontalLayout_14">
        <item>
-        <widget class="QLineEdit" name="packageUrl"/>
+        <widget class="QLineEdit" name="packageUrl">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select a repository from which to load the tbpackage.json package file to update/add an extension to.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_4">
+        <widget class="QPushButton" name="loadPackageButton">
          <property name="maximumSize">
           <size>
            <width>50</width>
@@ -37,55 +51,45 @@
       </layout>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="label_12">
+      <widget class="QLabel" name="authorLabel">
        <property name="text">
-        <string>Extension name:</string>
+        <string>Author:</string>
        </property>
       </widget>
      </item>
      <item row="1" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout_15">
-       <property name="spacing">
-        <number>0</number>
-       </property>
-       <item>
-        <spacer name="horizontalSpacer_7">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Maximum</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>0</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QComboBox" name="comboBox">
-         <property name="minimumSize">
-          <size>
-           <width>150</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="editable">
-          <bool>true</bool>
-         </property>
-         <property name="frame">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <widget class="QLineEdit" name="authorField"/>
      </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="label_7">
+     <item row="2" column="0">
+      <widget class="QLabel" name="websiteLabel">
        <property name="text">
-        <string>Package file URL: </string>
+        <string>Website:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="websiteField"/>
+     </item>
+     <item row="3" column="1">
+      <widget class="QComboBox" name="extensionPicker">
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+       <property name="frame">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_12">
+       <property name="text">
+        <string>Extension:</string>
        </property>
       </widget>
      </item>
@@ -126,8 +130,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>520</width>
-        <height>350</height>
+        <width>478</width>
+        <height>421</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -250,6 +254,31 @@
            </layout>
           </item>
           <item>
+           <widget class="QGroupBox" name="keywordsPanel">
+            <property name="title">
+             <string>Keywords</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_8">
+             <property name="topMargin">
+              <number>4</number>
+             </property>
+             <property name="rightMargin">
+              <number>6</number>
+             </property>
+             <property name="bottomMargin">
+              <number>6</number>
+             </property>
+             <item>
+              <widget class="QLineEdit" name="keywordsField">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Those keywords will help users discover your script in the Store.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
            <layout class="QHBoxLayout" name="horizontalLayout_8">
             <property name="spacing">
              <number>6</number>
@@ -279,7 +308,7 @@
                </sizepolicy>
               </property>
               <property name="toolTip">
-               <string>Packages are stored in the &quot;/package&quot; folder and contain a configure.js file that can define windows, shortcuts and menu items in the Harmony User Interface. Select this option if the files have to be installed in the &quot;/package&quot; folder.</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Packages are stored in the &amp;quot;/package&amp;quot; folder and contain a configure.js file &lt;/p&gt;&lt;p&gt;that can define windows, shortcuts and menu items in the Harmony User Interface. &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Select this option if the files have to be installed in the &amp;quot;/package&amp;quot; folder.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="layoutDirection">
                <enum>Qt::RightToLeft</enum>
@@ -321,6 +350,12 @@ p, li { white-space: pre-wrap; }
              </property>
             </widget>
             <widget class="QFrame" name="htmlPanel">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="frameShape">
               <enum>QFrame::StyledPanel</enum>
              </property>
@@ -329,51 +364,6 @@ p, li { white-space: pre-wrap; }
              </property>
             </widget>
            </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="keywordPanel">
-            <property name="title">
-             <string>Keywords</string>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_8">
-             <property name="topMargin">
-              <number>4</number>
-             </property>
-             <property name="rightMargin">
-              <number>6</number>
-             </property>
-             <property name="bottomMargin">
-              <number>6</number>
-             </property>
-             <item>
-              <widget class="QLineEdit" name="keywordsField"/>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <layout class="QFormLayout" name="formLayout_2">
-            <item row="0" column="0">
-             <widget class="QLabel" name="authorLabel">
-              <property name="text">
-               <string>Author:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QLineEdit" name="authorField"/>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="websiteLabel">
-              <property name="text">
-               <string>Website:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QLineEdit" name="websiteField"/>
-            </item>
-           </layout>
           </item>
          </layout>
         </widget>

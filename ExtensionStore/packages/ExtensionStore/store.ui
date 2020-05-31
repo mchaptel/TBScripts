@@ -41,6 +41,9 @@
       <property name="spacing">
        <number>0</number>
       </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <property name="spacing">
@@ -473,10 +476,30 @@
           </item>
          </layout>
         </widget>
+        <widget class="QLabel" name="label_11">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>1</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Unofficial Harmony Extension Store&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="textFormat">
+          <enum>Qt::RichText</enum>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
        </widget>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_11">
+        <property name="spacing">
+         <number>0</number>
+        </property>
         <property name="topMargin">
          <number>6</number>
         </property>
@@ -488,7 +511,23 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <spacer name="horizontalSpacer_5">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>6</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="registerButton">
           <property name="text">
            <string>Register new extension</string>
           </property>
@@ -542,36 +581,17 @@
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <property name="leftMargin">
-         <number>9</number>
+         <number>20</number>
         </property>
         <property name="topMargin">
-         <number>9</number>
+         <number>20</number>
         </property>
         <property name="rightMargin">
-         <number>9</number>
+         <number>20</number>
         </property>
         <property name="bottomMargin">
-         <number>9</number>
+         <number>20</number>
         </property>
-        <item>
-         <widget class="QLabel" name="label_11">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-            <horstretch>0</horstretch>
-            <verstretch>1</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Unofficial Harmony Extension Store&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-          </property>
-          <property name="textFormat">
-           <enum>Qt::RichText</enum>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
         <item>
          <spacer name="verticalSpacer">
           <property name="orientation">

@@ -7,7 +7,7 @@ function test() {
   var localList = new LocalExtensionList(store);
   var extensions = store.extensions;
 
-  var log = new Logger ("testing")
+  var log = new Logger("testing")
 
   // log(extensions.map(function (x) { return JSON.stringify(x.package, null, "  ") }));
 
@@ -26,7 +26,7 @@ function test() {
  * The Store class is used to search the github repos for available extensions
  */
 function Store() {
-  this.log = new Logger ("Store")
+  this.log = new Logger("Store")
   this.log.log("init store")
 
 }
@@ -129,8 +129,8 @@ Object.defineProperty(Store.prototype, "localPackage", {
   get: function () {
     if (typeof this._localPackage === 'undefined') {
       this._localPackage == {}
-      
-      var packageFile = currentFolder+"/tbpackage.json";
+
+      var packageFile = currentFolder + "/tbpackage.json";
       var storePackage = readFile(packageFile);
       if (storePackage == null) return null;
       this._localPackage = JSON.parse(storePackage);
@@ -150,12 +150,10 @@ Object.defineProperty(Store.prototype, "localPackage", {
  * Note: even though the nomenclature suggests it, there is no money transaction involved.
  * @param {Object} sellerPackage
  */
-function Seller(sellerPackage) {
-  this.log = new Logger ("Seller")
-  this.sellerPackage = sellerPackage;
-  this._url = sellerPackage.repository;
+function Seller(packageUrl) {
+  this.log = new Logger("Seller")
+  this._url = packageUrl;
   this.masterRepositoryName = this._url.replace("https://github.com/", "")
-  this.name = sellerPackage.name;
 }
 
 
@@ -176,7 +174,7 @@ Object.defineProperty(Seller.prototype, "dlUrl", {
  */
 Object.defineProperty(Seller.prototype, "package", {
   get: function () {
-    this.log.debug("getting package for " + this.name)
+    this.log.debug("getting package for " + this._url)
     if (typeof this._tbpackage === 'undefined') {
       this._tbpackage = {}
       var tbpackage = webQuery.get(this.dlUrl + "tbpackage.json")
@@ -201,6 +199,21 @@ Object.defineProperty(Seller.prototype, "package", {
 
 
 /**
+ * The seller name
+ */
+Object.defineProperty(Seller.prototype, "name", {
+  get: function () {
+    if (typeof this._name === 'undefined') {
+      var tbpackage = this.package;
+      if (tbpackage == null) return this.masterRepositoryName;
+      this._name = tbpackage.name;
+    }
+    return this._name;
+  }
+})
+
+
+/**
  * Get the repositories for this seller
  * @type {Repository[]}
  */
@@ -213,9 +226,10 @@ Object.defineProperty(Seller.prototype, "repositories", {
       if (tbpackage == null) return this._repositories;
 
       // use a repositories object to avoid duplicates
+      var extensionPackages = tbpackage.extensions;
       var repositories = {}
-      for (var i in tbpackage) {
-        var repoName = tbpackage[i].repository;
+      for (var i in extensionPackages) {
+        var repoName = extensionPackages[i].repository;
         if (!repositories.hasOwnProperty(repoName)) {
           repositories[repoName] = new Repository(repoName);
           repositories[repoName]._extensions = [];
@@ -224,7 +238,7 @@ Object.defineProperty(Seller.prototype, "repositories", {
 
         // add extensions directly when getting repository
         var repository = repositories[repoName];
-        var extension = new Extension(repository, tbpackage[i]);
+        var extension = new Extension(repository, extensionPackages[i]);
         repository._extensions.push(extension);
       }
     }
@@ -261,7 +275,7 @@ Object.defineProperty(Seller.prototype, "extensions", {
  * @property {Object}  contents       parsed json from the api query
  */
 function Repository(url) {
-  this.log = new Logger ("Repository")
+  this.log = new Logger("Repository")
   this._url = url;
   this.name = this._url.replace("https://github.com/", "")
 }
@@ -439,7 +453,7 @@ Repository.prototype.getFiles = function (folder, filter) {
  * @param {object} tbpackage     The part of a tbpackage object describing this extension
  */
 function Extension(repository, tbpackage) {
-  this.log = new Logger ("Extension")
+  this.log = new Logger("Extension")
   this.repository = repository
   this.name = tbpackage.name;
   this.version = tbpackage.version;
@@ -606,7 +620,7 @@ Extension.prototype.currentVersionIsOlder = function (version) {
  * @param {Store}   store    the store object that contains the available extensions
  */
 function LocalExtensionList(store) {
-  this.log = new Logger ("LocalExtensionList")
+  this.log = new Logger("LocalExtensionList")
   this._installFolder = specialFolders.userScripts + "/";             // default install folder, can be modified with installFolder property
   this._listFile = specialFolders.userConfig + "/.extensionsList";
   // if (this.list.length == 0) this.createListFile(store);              // initialize the list file that contains the extensions (!heavy! CBB: do it at a different time?)
@@ -865,7 +879,7 @@ LocalExtensionList.prototype.createListFile = function (store) {
  * @constructor
  */
 function ExtensionDownloader(extension) {
-  this.log = new Logger ("ExtensionDownloader")
+  this.log = new Logger("ExtensionDownloader")
   this.log.level = this.log.LEVEL.LOG;
   this.repository = extension.repository;
   this.extension = extension;
@@ -1107,7 +1121,7 @@ Logger.prototype.error = function () {
  * Outputs the given message. Used internally.
  */
 Logger.prototype.trace = function (message) {
-  if (this.name) var message = this.name+": "+message.join(" ")
+  if (this.name) var message = this.name + ": " + message.join(" ")
   MessageLog.trace(message);
   System.println(message);
 }
@@ -1133,7 +1147,7 @@ function readFile(filename) {
 
 // writes the contents to the specified filename.
 function writeFile(filename, content, append) {
-  var log = new Logger ("helpers")
+  var log = new Logger("helpers")
   if (typeof append === 'undefined') var append = false;
 
   log.debug("writing file " + filename)
@@ -1154,7 +1168,7 @@ function writeFile(filename, content, append) {
 
 // returns the folder of this file
 var currentFolder = __file__.split("/").slice(0, -1).join("/");
-if (currentFolder.indexOf("repo")== -1) Logger.level = 1;   // disable logging if extension isn't in a repository
+if (currentFolder.indexOf("repo") == -1) Logger.level = 1;   // disable logging if extension isn't in a repository
 
 
 // make a deep copy of an object
@@ -1175,7 +1189,7 @@ function deepCopy(object) {
 
 // recursive copy of folders content
 function recursiveFileCopy(folder, destination) {
-  var log = new Logger ("helpers")
+  var log = new Logger("helpers")
   log.debug("copying files from folder " + folder + " to destination " + destination)
   try {
     var p = new QProcess();

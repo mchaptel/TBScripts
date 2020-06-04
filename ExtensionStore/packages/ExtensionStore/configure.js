@@ -303,12 +303,12 @@ function initStoreUI() {
 
     log.log("installing extension : " + extension.repository.name + extension.name)
     // log(JSON.stringify(extension.package, null, "  "))
-    try{
+    try {
       localList.install(extension);
       MessageBox.information("Extension " + extension.name + " v" + extension.version + "\nwas installed correctly.")
-    }catch(err){
+    } catch (err) {
       log.error(err)
-      MessageBox.information("There was an error while installing extension\n" + extension.name + " v" + extension.version + ":\n\n"+err)
+      MessageBox.information("There was an error while installing extension\n" + extension.name + " v" + extension.version + ":\n\n" + err)
     }
     localList.refreshExtensions();
     updateStoreList();
@@ -332,12 +332,12 @@ function initStoreUI() {
 
     log.log("uninstalling extension : " + extension.repository.name + extension.name)
     // log(JSON.stringify(extension.package, null, "  "))
-    try{
+    try {
       localList.uninstall(extension);
       MessageBox.information("Extension " + extension.name + " v" + extension.version + "\nwas uninstalled succesfully.")
-    }catch(err){
+    } catch (err) {
       log.error(err)
-      MessageBox.information("There was an error while uninstalling extension\n" + extension.name + " v" + extension.version + ":\n\n"+err)
+      MessageBox.information("There was an error while uninstalling extension\n" + extension.name + " v" + extension.version + ":\n\n" + err)
     }
     localList.refreshExtensions();
     updateStoreList();
@@ -355,7 +355,7 @@ function initStoreUI() {
     var seller;
 
     // Setup register panel --------------------------------------------
-    var registerPanel = form.registerScroll.widget().registerForm;
+    var registerPanel = form.registerForm;
     var registerDescription = registerPanel.descriptionSplitter.widget(0);
     var htmlPreview = registerPanel.descriptionSplitter.widget(1);
 
@@ -375,17 +375,23 @@ function initStoreUI() {
     htmlPreview.layout().addWidget(descriptionPreview, 0, Qt.AlignTop);
 
     registerDescription.textChanged.connect(this, function () {
-      descriptionPreview.setHtml(registerDescription.document().toPlainText())
+      descriptionPreview.setHtml(registerDescription.document().toPlainText());
     })
 
     // Load Package ----------------------------------------------------
+    var list = registerPanel.extensionPicker;
+    var authorBox = form.authorBox;
+    var packageBox = form.packageBox;
+    
+    var updating = false;
 
-    var list = form.extensionPicker;
+    authorBox.enabled = false;
+    registerPanel.enabled = false;
 
     // load existing package 
-    form.loadPackageButton.clicked.connect(this, function () {
+    packageBox.loadPackageButton.clicked.connect(this, function () {
       log.debug("loading package");
-      var package = form.packageUrl.text;
+      var package = packageBox.packageUrl.text;
       var sellerRe = /https:\/\/github.com\/[^\/]*\/[^\/]*\//i;
       var sellerUrl = sellerRe.exec(package);
       if (!sellerUrl) {
@@ -394,77 +400,105 @@ function initStoreUI() {
       }
 
       seller = new Seller(sellerUrl[0]);
-      log.log(sellerUrl[0])
+      loadSeller(seller);
+    })
+
+
+    // load the info from the seller into the form
+    function loadSeller(seller){
       var extensions = seller.extensions;
-      log.log("found extensions", Object.keys(extensions))
+      log.debug("found extensions", Object.keys(extensions))
 
       // update seller info
-      form.authorField.setText(seller.name);
-      form.websiteField.setText(seller.package.website);
+      authorBox.authorField.setText(seller.name);
+      authorBox.websiteField.setText(seller.package.website);
+      authorBox.socialField.setText(seller.package.social);
+
+      authorBox.enabled = true;
+      registerPanel.enabled = true;
 
       // add extensions to the drop down
-      var index = 0;
       for (var i in extensions) {
-        list.addItem(extensions[i].name);
-        log.debug("adding data :")
-        // log.debug(JSON.stringify(extensions[i].package, null, " "))
-        log.debug(extensions[i].id)
-        list.setItemData(index, extensions[i].id, Qt.UserRole);
-        index++;
+        list.addItem(extensions[i].name, extensions[i].id)
       }
       updatePackageInfo(0);
 
-      list["currentIndexChanged(int)"].connect(this, updatePackageInfo)
-    })
+      list["currentIndexChanged(int)"].connect(this, updatePackageInfo);
+        
+      // save package when finishing editing any widget
+      registerPanel.versionField.editingFinished.connect(this, getPackageInfo)
+      registerPanel.compatibilityComboBox["currentIndexChanged(int)"].connect(this, getPackageInfo)
+      registerDescription.focusOutEvent = getPackageInfo;
+      registerPanel.isPackageCheckBox.stateChanged.connect(this, getPackageInfo)
+      registerPanel.keywordsPanel.keywordsField.editingFinished.connect(this, getPackageInfo)
+      registerPanel.repoField.editingFinished.connect(this, getPackageInfo)
+    }
 
 
     // populate description with info from extension package
     function updatePackageInfo(index) {
-      var extensionId = list.itemData(index, Qt.UserRole)
-      var extension = seller.extensions[extensionId]
+      updating = true;
+      var extensionId = list.itemData(index, Qt.UserRole);
+      if (extensionId == undefined) {
+       var extension = seller.addExtension(list.currentText);
+        list.setItemData(index, extension.id, Qt.UserRole);
+      } else {
+        var extension = seller.extensions[extensionId];
+      }
 
-      log.debug("displaying extension:", extensionId)
-      log.debug(JSON.stringify(extension.package, null, " "))
+      log.debug("displaying extension:", extensionId);
+      log.debug(JSON.stringify(extension.package, null, " "));
 
-      registerPanel.versionField.setText(extension.package.version)
-      var compatIndex = registerPanel.compatibiltyComboBox.findText(extension.package.compatibility)
-      registerPanel.compatibiltyComboBox.setCurrentIndex(compatIndex)
-      registerDescription.setPlainText(extension.package.description)
-      registerPanel.isPackageCheckBox.setChecked(extension.package.isPackage)
-      registerPanel.keywordsPanel.keywordsField.setText(extension.package.keywords.join(", "))
-      form.repoField.setText(extension.package.repository);
-      form.filesField.setText(extension.package.files.join(", "));
+      registerPanel.versionField.setText(extension.package.version);
+      var compatIndex = registerPanel.compatibilityComboBox.findText(extension.package.compatibility);
+      registerPanel.compatibilityComboBox.setCurrentIndex(compatIndex);
+      registerDescription.setPlainText(extension.package.description);
+      registerPanel.isPackageCheckBox.checked = extension.package.isPackage;
+      registerPanel.keywordsPanel.keywordsField.setText(extension.package.keywords.join(", "));
+      registerPanel.repoField.setText(extension.package.repository);
+      registerPanel.filesField.setText(extension.package.files.join(", "));
+      updating = false;
     }
 
+    
     // gather all the info from the form
     function getPackageInfo() {
+      if (updating) return;
+      var extensionId = list.itemData(list.currentIndex, Qt.UserRole);
+      var extension = seller.extensions[extensionId];
+
       var extensionPackage = {};
       extensionPackage.name = list.currentText;
-      extensionPackage.version = registerPanel.versionField.text
-      extensionPackage.compatiblity = registerPanel.compatibiltyComboBox.currentText
-      extensionPackage.description = registerDescription.document().toPlainText()
-      extensionPackage.isPackage = registerPanel.isPackageCheckBox.checked
+      extensionPackage.version = registerPanel.versionField.text;
+      extensionPackage.compatibility = registerPanel.compatibilityComboBox.currentText;
+      extensionPackage.description = registerDescription.document().toPlainText();
+      extensionPackage.isPackage = registerPanel.isPackageCheckBox.checked;
       extensionPackage.keywords = registerPanel.keywordsPanel.keywordsField.text.replace(/ /g, "").split(",");
-      extensionPackage.repository = form.repoField.text
-      extensionPackage.files = form.filesField.text.replace(/(, | ,)/g, ",").split(",");
-      return extensionPackage;
+      extensionPackage.repository = registerPanel.repoField.text;
+      extensionPackage.files = registerPanel.filesField.text.replace(/(, | ,)/g, ",").split(",");
+
+      log.debug("saving package:")
+      log.debug(JSON.stringify(extensionPackage, null, " "))
+      extension.package = extensionPackage;
     }
 
     // Pick Files From Repository -----------------------------------
 
-    function pickFiles(){
-      log.log('pick files')
-      var repository = new Repository(form.repoField.text);
-        
+    function pickFiles() {
+      log.debug('pick files')
+
+      var repository = new Repository(registerPanel.repoField.text);
+
       var currentFolder = storelib.currentFolder;
       var pickerUi = UiLoader.load(currentFolder + "/pickFiles.ui");
+      pickerUi.repoName = registerPanel.repoField.text;
       var files = repository.contents;
       log.debug(JSON.stringify(files, null, " "))
 
       pickerUi.show();
     }
 
-    form.filesPicker.clicked.connect(this, pickFiles);
+    registerPanel.filesPicker.clicked.connect(this, pickFiles);
 
     form.show();
   }
@@ -476,4 +510,4 @@ function initStoreUI() {
 
 
 
-exports.configure = configure;
+exports.configure = configure

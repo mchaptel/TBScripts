@@ -50,7 +50,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog displays the contents of the repository above.&lt;/p&gt;&lt;p&gt;Add the files that will be included in the extension by selecting them below and pressing &amp;quot;Add Files&amp;quot;.&lt;/p&gt;&lt;p&gt;It is possible to add a lot of files at once by entering a filter below, for example to include all &amp;quot;*.js&amp;quot; files from a specific folder. For this, select the folder that contains the files, add &amp;quot;*.js&amp;quot; in the Files Filter field then click &amp;quot;Add Files&amp;quot;. Regular expressions are also supported.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog displays the contents of the repository above.&lt;/p&gt;&lt;p&gt;Add the files that will be included in the extension by selecting them below and pressing &amp;quot;Add Files&amp;quot;.&lt;/p&gt;&lt;p&gt;It is possible to add a lot of files at once by entering a filter below. For example, to include all &amp;quot;*.js&amp;quot; files from a specific folder, select the folder that contains the files, add &amp;quot;*.js&amp;quot; in the Files Filter field then click &amp;quot;Add Files&amp;quot;. Regular expressions are also supported.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>

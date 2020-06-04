@@ -154,13 +154,6 @@ function Seller(repoUrl) {
   this.log = new Logger("Seller");
   this.log.debug("init seller " + repoUrl)
   this._url = repoUrl;
-  this.log.debug(this._url)
-  this.log.log(repoUrl.hasOwnProperty("replace"))
-  try {
-    this.log.debug(typeof repoUrl)
-  } catch (err) {
-    this.log.error(err)
-  }
   this.masterRepositoryName = repoUrl.replace("https://github.com/", "");
 }
 
@@ -263,18 +256,50 @@ Object.defineProperty(Seller.prototype, "extensions", {
   get: function () {
     this.log.debug("getting extensions from seller " + this.name)
     if (typeof this._extensions === 'undefined') {
-      var extensions = []
+      var extensions = {}
       for (var i in this.repositories) {
         for (var j in this.repositories[i].extensions) {
           var extension = this.repositories[i].extensions[j]
           extensions[extension.id] = extension;
         }
       }
-      this._extensions = extensions
+      this._extensions = extensions;
     }
     return this._extensions;
   }
 });
+
+
+/**
+ * function used to add a new extension to a seller package. Extensions created that way cannot be installed or downloaded.
+ * @param {string}  name     The name to give the new extension
+ */
+Seller.prototype.addExtension = function(name){
+  var extensions = this.extensions
+  for (var i in extensions){
+    if (extensions[i].name == name){
+      throw new Error("Seller "+this.name+" already has an extension named "+name);
+    }
+  }
+
+  var extension = new Extension(new Repository(this._url), {name:name, version:"1.0.0"});
+  extension.package = {name:name, version:"1.0.0"} 
+  this._extensions[extension.id] = extension;
+
+  return extension
+}
+
+
+Seller.prototype.generatePackage = function(){
+  var extensions = this.extensions;
+  var tbpackage = { name:this.name, repository:this._url, extensions:[]}
+
+  for (var i in extensions){
+    tbpackage.extensions.push(extensions[i].package)
+  }
+
+  return tbpackage;
+}
 
 
 // Repository Class --------------------------------------------
@@ -356,7 +381,7 @@ Object.defineProperty(Repository.prototype, "contents", {
   get: function () {
     this.log.debug("getting repos contents for repo " + this.apiUrl);
     if (typeof this._contents === 'undefined') {
-      var contents = webQuery.get(this.tree + "?recursive=true");
+      var contents = webQuery.get(this.masterBranchTree + "?recursive=true");
       if (contents) this._contents = contents;
     }
     return this._contents;
@@ -401,7 +426,8 @@ Object.defineProperty(Repository.prototype, "extensions", {
 Object.defineProperty(Repository.prototype, "masterBranchTree", {
   get: function () {
     if (typeof this._tree === 'undefined') {
-      var tree = webQuery(this.apiUrl + "branches/master");
+      this.log.debug(this.apiUrl + "branches/master")
+      var tree = webQuery.get(this.apiUrl + "branches/master");
       if (tree) this._tree = tree.tree.url;
     }
     return this._tree
@@ -482,9 +508,9 @@ Object.defineProperty(Extension.prototype, "package", {
   },
   set: function (packageObject) {
     this._package = {
-      "name": "",
-      "version": "",
-      "compatibility": "",
+      "name": this.name,
+      "version": this.version,
+      "compatibility": "Harmony Premium 16",
       "description": "",
       "repository": this.repository._url,
       "isPackage": false,
@@ -492,7 +518,7 @@ Object.defineProperty(Extension.prototype, "package", {
       "keywords": [],
       "author": "",
       "license": "",
-      "website": "",
+      "website": this.repository._url,
       "localFiles": ""
     };
 

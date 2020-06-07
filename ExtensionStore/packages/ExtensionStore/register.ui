@@ -20,6 +20,9 @@
       <string>Package File</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="topMargin">
+       <number>6</number>
+      </property>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_14">
         <item>
@@ -60,14 +63,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_3">
+         <widget class="QPushButton" name="loadPackageFromFileButton">
           <property name="text">
            <string>Load From File</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_2">
+         <widget class="QPushButton" name="newPackageButton">
           <property name="text">
            <string>Create New</string>
           </property>
@@ -84,6 +87,9 @@
       <string>Author</string>
      </property>
      <layout class="QFormLayout" name="formLayout_3">
+      <property name="topMargin">
+       <number>5</number>
+      </property>
       <item row="0" column="1">
        <widget class="QLineEdit" name="authorField"/>
       </item>
@@ -112,7 +118,11 @@
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QLineEdit" name="socialField"/>
+       <widget class="QLineEdit" name="socialField">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Paste here the html for any widget (donate button, instagram or gumroad links, etc) that must appear under the author name in the script description.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -123,8 +133,14 @@
       <string>Extension</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
+      <property name="topMargin">
+       <number>3</number>
+      </property>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
+        <property name="spacing">
+         <number>0</number>
+        </property>
         <item>
          <widget class="QLabel" name="label_12">
           <property name="sizePolicy">
@@ -137,6 +153,22 @@
            <string>Extension name:</string>
           </property>
          </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>3</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
         </item>
         <item>
          <widget class="QComboBox" name="extensionPicker">
@@ -155,27 +187,67 @@
           <property name="editable">
            <bool>true</bool>
           </property>
+          <property name="insertPolicy">
+           <enum>QComboBox::NoInsert</enum>
+          </property>
           <property name="frame">
            <bool>true</bool>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QToolButton" name="addExtensionButton">
+          <property name="minimumSize">
+           <size>
+            <width>22</width>
+            <height>22</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>19</width>
+            <height>19</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>+</string>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>19</width>
+            <height>19</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="removeExtensionButton">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>22</width>
+            <height>22</height>
+           </size>
+          </property>
           <property name="maximumSize">
            <size>
-            <width>16777215</width>
-            <height>100</height>
+            <width>19</width>
+            <height>19</height>
            </size>
           </property>
           <property name="text">
-           <string>Delete</string>
+           <string>x</string>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>19</width>
+            <height>19</height>
+           </size>
           </property>
          </widget>
         </item>
@@ -330,7 +402,7 @@
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>300</height>
+          <height>16777215</height>
          </size>
         </property>
         <property name="orientation">

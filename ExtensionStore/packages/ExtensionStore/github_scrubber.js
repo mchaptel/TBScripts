@@ -274,27 +274,55 @@ Object.defineProperty(Seller.prototype, "extensions", {
  * function used to add a new extension to a seller package. Extensions created that way cannot be installed or downloaded.
  * @param {string}  name     The name to give the new extension
  */
-Seller.prototype.addExtension = function(name){
+Seller.prototype.addExtension = function (name) {
   var extensions = this.extensions
-  for (var i in extensions){
-    if (extensions[i].name == name){
-      throw new Error("Seller "+this.name+" already has an extension named "+name);
+  for (var i in extensions) {
+    if (extensions[i].name == name) {
+      throw new Error("Seller " + this.name + " already has an extension named " + name);
     }
   }
 
-  var extension = new Extension(new Repository(this._url), {name:name, version:"1.0.0"});
-  extension.package = {name:name, version:"1.0.0"} 
+  var extension = new Extension(new Repository(this._url), { name: name, version: "1.0.0" });
+  extension.package = { name: name, version: "1.0.0" }
   this._extensions[extension.id] = extension;
 
   return extension
 }
 
 
-Seller.prototype.generatePackage = function(){
-  var extensions = this.extensions;
-  var tbpackage = { name:this.name, repository:this._url, extensions:[]}
+/**
+ * removes an extension from the seller by providing its id
+ */
+Seller.prototype.removeExtension = function (id) {
+  var repository = this._extensions[id].repository;
+  var ids = repository.extensions.map(function (x) { return x.id })
+  repository.extensions.splice(ids.indexOf(id), 1)
+  delete this._extensions[id]
+}
 
-  for (var i in extensions){
+
+/**
+ * 
+ */
+Seller.prototype.renameExtension = function (id, name) {
+  var extension = this._extensions[id];
+  var repository = extension.repository;
+
+  this.removeExtension(id)
+  extension.name = name;
+
+  this._extensions[extension.id] = extension
+  this.repository._extensions.push(extension)
+}
+
+/**
+ * Generate a package file from the Seller
+ */
+Seller.prototype.generatePackage = function () {
+  var extensions = this.extensions;
+  var tbpackage = { name: this.name, repository: this._url, extensions: [] }
+
+  for (var i in extensions) {
     tbpackage.extensions.push(extensions[i].package)
   }
 
@@ -382,7 +410,12 @@ Object.defineProperty(Repository.prototype, "contents", {
     this.log.debug("getting repos contents for repo " + this.apiUrl);
     if (typeof this._contents === 'undefined') {
       var contents = webQuery.get(this.masterBranchTree + "?recursive=true");
-      if (contents) this._contents = contents;
+      if (!contents) return null;
+
+      var tree = contents.tree;
+
+      this.log.debug(JSON.stringify(tree, null, " "))
+      this._contents = tree;
     }
     return this._contents;
   }
@@ -428,7 +461,7 @@ Object.defineProperty(Repository.prototype, "masterBranchTree", {
     if (typeof this._tree === 'undefined') {
       this.log.debug(this.apiUrl + "branches/master")
       var tree = webQuery.get(this.apiUrl + "branches/master");
-      if (tree) this._tree = tree.tree.url;
+      if (tree) this._tree = tree.commit.commit.tree.url;   // the query returns a big object in which this is the address of the contents tree
     }
     return this._tree
   }
@@ -493,11 +526,21 @@ Repository.prototype.getFiles = function (folder, filter) {
 function Extension(repository, tbpackage) {
   this.log = new Logger("Extension")
   this.repository = repository
-  this.name = tbpackage.name;
+  this._name = tbpackage.name;
   this.version = tbpackage.version;
   this.package = tbpackage;
 }
 
+
+Object.defineProperty(Extension.prototype, "name", {
+  get: function () {
+    return this._name;
+  },
+  set: function (newName) {
+    this._name = newName;
+    this.package.name = newName;
+  }
+})
 
 /**
  * Get the json package describing this extension. Thanks to this getter setter, we can ensure the package file is complete even with an obsolete json
@@ -523,7 +566,7 @@ Object.defineProperty(Extension.prototype, "package", {
     };
 
     // we remove the obsolete/ extra entries
-    for (var i in packageObject){
+    for (var i in packageObject) {
       if (this._package.hasOwnProperty(i)) this._package[i] = packageObject[i];
     }
   }
@@ -608,11 +651,10 @@ Object.defineProperty(Extension.prototype, "files", {
  */
 Object.defineProperty(Extension.prototype, "id", {
   get: function () {
-    if (typeof this._id === 'undefined') {
-      var repoName = this.package.repository.replace("https://github.com/", "")
-      this._id = (repoName + this.name).replace(/ /g, "_")
-    }
-    return this._id;
+    var repoName = this.package.repository.replace("https://github.com/", "")
+    var id = (repoName + this.name).replace(/ /g, "_")
+
+    return id;
   }
 })
 
@@ -822,13 +864,13 @@ LocalExtensionList.prototype.uninstall = function (extension) {
 
   var files = localExtension.package.localFiles;
   for (var i in files) {
-    this.log.debug("removing file "+files[i])
+    this.log.debug("removing file " + files[i])
     var file = new File(files[i])
     if (file.exists) file.remove();
   }
   if (extension.package.isPackage) {
     var folder = new Dir(this.installFolder + "packages/" + extension.name);
-    this.log.debug("removing folder "+folder.path)
+    this.log.debug("removing folder " + folder.path)
     if (folder.exists) folder.rmdirs();
   }
   this.removeFromList(extension);
@@ -973,7 +1015,7 @@ ExtensionDownloader.prototype.downloadFiles = function () {
     var dlFile = new File(destPaths[i]);
     if (dlFile.size == files[i].size) {
       // download complete!
-      this.log.log("successfully downloaded " + files[i].name + " to location : " + destPaths[i])
+      this.log.debug("successfully downloaded " + files[i].name + " to location : " + destPaths[i])
       dlFiles.push(destPaths[i])
     } else {
       throw new Error("Downloaded file " + destPaths[i] + " size does not match expected size : " + dlFile.size + " " + files[i].size)
@@ -1187,8 +1229,14 @@ Logger.prototype.error = function () {
  */
 Logger.prototype.trace = function (message) {
   if (this.name) var message = this.name + ": " + message.join(" ");
-  MessageLog.trace(message);
-  System.println(message);
+  try {
+    MessageLog.trace(message);
+    System.println(message);
+  } catch (err) {
+    for (var i in message) {
+      this.trace(message)
+    }
+  }
 }
 
 

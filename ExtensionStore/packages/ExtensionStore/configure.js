@@ -15,7 +15,7 @@
 ////////////////////////////////////////////////////////////////
 
 
-MessageLog.trace("Succesfully loaded Extension Store Package.")
+MessageLog.trace("Succesfully loaded Extension Store Package.");
 MessageLog.clearLog();
 
 function configure(packageFolder, packageName) {
@@ -28,7 +28,7 @@ function configure(packageFolder, packageName) {
 
 function initStoreUI() {
   var storelib = require("./github_scrubber.js");
-  var log = new storelib.Logger("UI")
+  var log = new storelib.Logger("UI");
   var store = new storelib.Store();
   var localList = new storelib.LocalExtensionList(store);
 
@@ -56,7 +56,12 @@ function initStoreUI() {
   var webPreviewsFontSize = 12;
   var webPreviewsStyleSheet = "QWebView { background-color: lightGrey; }";
 
-  updateRibbonStyleSheet = "QWidget { background-color: blue; }";
+  var updateRibbonStyleSheet = "QWidget { background-color: blue; }";
+
+  var folderIcon = specialFolders.resource + "/icons/old/oldfolder.png";
+  var selectedFileBackground = new QBrush(new QColor(Qt.darkCyan), Qt.SolidPattern);
+  var unselectedFileBackground = new QBrush(new QColor(Qt.transparent), Qt.SolidPattern);
+  var includedFileBackground = new QBrush(new QColor(Qt.darkRed), Qt.SolidPattern);
 
   // disable store frame until store is loaded
   var storeFrame = ui.storeFrame;
@@ -97,7 +102,7 @@ function initStoreUI() {
       aboutFrame.updateRibbon.updateButton.clicked.connect(updateStore);
     } else {
       aboutFrame.updateRibbon.updateButton.hide();
-      aboutFrame.updateRibbon.storeVersion.setText("v" + currentVersion + " ✓ - Store is up to date.")
+      aboutFrame.updateRibbon.storeVersion.setText("v" + currentVersion + " ✓ - Store is up to date.");
     }
 
     storeFrame.storeVersionLabel.setText("v" + currentVersion);
@@ -148,20 +153,20 @@ function initStoreUI() {
     // add an icon in the middle column showing if installed and if update present
     if (localList.isInstalled(extension)) {
       var icon = "✓";
-      this.setToolTip(1, "Extension is installed correctly.")
+      this.setToolTip(1, "Extension is installed correctly.");
       var localExtension = localList.extensions[extension.id];
-      log.debug(extension.id, localList.checkFiles(localExtension))
+      log.debug(extension.id, localList.checkFiles(localExtension));
       if (localExtension.currentVersionIsOlder(extension.version)) {
         icon = "↺";
-        this.setToolTip(1, "Update available.")
+        this.setToolTip(1, "Update available.");
       } else if (!localList.checkFiles(localExtension)) {
         icon = "!";
-        this.setToolTip(1, "Some files from this extension are missing.")
+        this.setToolTip(1, "Some files from this extension are missing.");
       }
     } else {
       var icon = "✗";
     }
-    this.setText(1, icon)
+    this.setText(1, icon);
   }
   ExtensionItem.prototype = Object.create(QTreeWidgetItem.prototype);
 
@@ -174,7 +179,7 @@ function initStoreUI() {
     var sellers = store.sellers;
 
     if (extensionsList.selectedItems().length > 0) {
-      var currentSelectionId = extensionsList.selectedItems()[0].data(0, Qt.UserRole)
+      var currentSelectionId = extensionsList.selectedItems()[0].data(0, Qt.UserRole);
     }
 
     //remove all widgets from store
@@ -224,7 +229,7 @@ function initStoreUI() {
   })
 
   // Clear search button ----------------------------------------------
-  storeFrame.storeClearSearch.setStyleSheet("QToolButton { background-color: black }")
+  storeFrame.storeClearSearch.setStyleSheet("QToolButton { background-color: black }");
   storeFrame.storeClearSearch.clicked.connect(this, function () {
     storeFrame.searchStore.text = "";
   })
@@ -241,25 +246,23 @@ function initStoreUI() {
     storeDescriptionPanel.websiteButton.toolTip = extension.package.website;
 
     // update install button to reflect wether or not the extension is already installed
-    // storeDescriptionPanel.installButton
     if (localList.isInstalled(extension)) {
       var localExtension = localList.extensions[extension.id];
       if (!localExtension.currentVersionIsOlder(extension.version) && localList.checkFiles(extension)) {
-        storeDescriptionPanel.installButton.removeAction(installAction)
-        storeDescriptionPanel.installButton.removeAction(updateAction)
-        storeDescriptionPanel.installButton.setDefaultAction(uninstallAction)
+        storeDescriptionPanel.installButton.removeAction(installAction);
+        storeDescriptionPanel.installButton.removeAction(updateAction);
+        storeDescriptionPanel.installButton.setDefaultAction(uninstallAction);
       } else {
         //change to update?
-        // installAction.setText("Update")
-        storeDescriptionPanel.installButton.removeAction(installAction)
-        storeDescriptionPanel.installButton.removeAction(uninstallAction)
-        storeDescriptionPanel.installButton.setDefaultAction(updateAction)
+        storeDescriptionPanel.installButton.removeAction(installAction);
+        storeDescriptionPanel.installButton.removeAction(uninstallAction);
+        storeDescriptionPanel.installButton.setDefaultAction(updateAction);
       }
     } else {
       // installAction.setText("Install")
-      storeDescriptionPanel.installButton.removeAction(uninstallAction)
-      storeDescriptionPanel.installButton.removeAction(updateAction)
-      storeDescriptionPanel.installButton.setDefaultAction(installAction)
+      storeDescriptionPanel.installButton.removeAction(uninstallAction);
+      storeDescriptionPanel.installButton.removeAction(updateAction);
+      storeDescriptionPanel.installButton.setDefaultAction(installAction);
     }
   }
 
@@ -284,13 +287,13 @@ function initStoreUI() {
 
   // View Source button -----------------------------------------------
   storeDescriptionPanel.sourceButton.clicked.connect(this, function () {
-    QDesktopServices.openUrl(new QUrl(storeDescriptionPanel.sourceButton.toolTip))
+    QDesktopServices.openUrl(new QUrl(storeDescriptionPanel.sourceButton.toolTip));
   });
 
 
   // View Website Button ----------------------------------------------
   storeDescriptionPanel.websiteButton.clicked.connect(this, function () {
-    QDesktopServices.openUrl(new QUrl(storeDescriptionPanel.websiteButton.toolTip))
+    QDesktopServices.openUrl(new QUrl(storeDescriptionPanel.websiteButton.toolTip));
   });
 
 
@@ -301,24 +304,24 @@ function initStoreUI() {
     var id = selection[0].data(0, Qt.UserRole);
     var extension = store.extensions[id];
 
-    log.log("installing extension : " + extension.repository.name + extension.name)
+    log.log("installing extension : " + extension.repository.name + extension.name);
     // log(JSON.stringify(extension.package, null, "  "))
     try {
       localList.install(extension);
-      MessageBox.information("Extension " + extension.name + " v" + extension.version + "\nwas installed correctly.")
+      MessageBox.information("Extension " + extension.name + " v" + extension.version + "\nwas installed correctly.");
     } catch (err) {
-      log.error(err)
-      MessageBox.information("There was an error while installing extension\n" + extension.name + " v" + extension.version + ":\n\n" + err)
+      log.error(err);
+      MessageBox.information("There was an error while installing extension\n" + extension.name + " v" + extension.version + ":\n\n" + err);
     }
     localList.refreshExtensions();
     updateStoreList();
   }
 
   var installAction = new QAction("Install", this);
-  installAction.triggered.connect(this, installExtension)
+  installAction.triggered.connect(this, installExtension);
 
   var updateAction = new QAction("Update", this);
-  updateAction.triggered.connect(this, installExtension)
+  updateAction.triggered.connect(this, installExtension);
   // storeDescriptionPanel.installButton.setDefaultAction(installAction);
 
   // Install Button ----------------------------------------------------
@@ -326,18 +329,18 @@ function initStoreUI() {
 
   uninstallAction.triggered.connect(this, function () {
     var selection = extensionsList.selectedItems();
-    if (selection.length == 0) return
+    if (selection.length == 0) return;
     var id = selection[0].data(0, Qt.UserRole);
     var extension = store.extensions[id];
 
-    log.log("uninstalling extension : " + extension.repository.name + extension.name)
+    log.log("uninstalling extension : " + extension.repository.name + extension.name);
     // log(JSON.stringify(extension.package, null, "  "))
     try {
       localList.uninstall(extension);
-      MessageBox.information("Extension " + extension.name + " v" + extension.version + "\nwas uninstalled succesfully.")
+      MessageBox.information("Extension " + extension.name + " v" + extension.version + "\nwas uninstalled succesfully.");
     } catch (err) {
-      log.error(err)
-      MessageBox.information("There was an error while uninstalling extension\n" + extension.name + " v" + extension.version + ":\n\n" + err)
+      log.error(err);
+      MessageBox.information("There was an error while uninstalling extension\n" + extension.name + " v" + extension.version + ":\n\n" + err);
     }
     localList.refreshExtensions();
     updateStoreList();
@@ -346,7 +349,7 @@ function initStoreUI() {
   // Register extension ------------------------------------------------
 
   function registerExtension() {
-    var currentFolder = storelib.currentFolder
+    var currentFolder = storelib.currentFolder;
     var form = UiLoader.load(currentFolder + "/register.ui");
 
     var Seller = storelib.Seller;
@@ -358,8 +361,6 @@ function initStoreUI() {
     var registerPanel = form.registerForm;
     var registerDescription = registerPanel.descriptionSplitter.widget(0);
     var htmlPreview = registerPanel.descriptionSplitter.widget(1);
-
-    registerPanel.descriptionSplitter.setSizes([registerPanel.descriptionSplitter.width, 0]);
 
     // create the webview programmatically
     var descriptionPreview = new QWebView();
@@ -374,6 +375,8 @@ function initStoreUI() {
     htmlPreview.layout().setContentsMargins(0, 0, 0, 0);
     htmlPreview.layout().addWidget(descriptionPreview, 0, Qt.AlignTop);
 
+    registerPanel.descriptionSplitter.setSizes([registerPanel.descriptionSplitter.width, 0]);
+
     registerDescription.textChanged.connect(this, function () {
       descriptionPreview.setHtml(registerDescription.document().toPlainText());
     })
@@ -382,32 +385,51 @@ function initStoreUI() {
     var list = registerPanel.extensionPicker;
     var authorBox = form.authorBox;
     var packageBox = form.packageBox;
-    
+
     var updating = false;
 
     authorBox.enabled = false;
     registerPanel.enabled = false;
 
-    // load existing package 
-    packageBox.loadPackageButton.clicked.connect(this, function () {
+    // load existing package       
+    function loadPackage() {
       log.debug("loading package");
-      var package = packageBox.packageUrl.text;
+      var packageUrl = packageBox.packageUrl.text;
+      if (packageUrl.slice(-1) != "/") {
+        packageBox.packageUrl.text += "/";
+        packageUrl = packageBox.packageUrl.text;
+      }
       var sellerRe = /https:\/\/github.com\/[^\/]*\/[^\/]*\//i;
-      var sellerUrl = sellerRe.exec(package);
+      var sellerUrl = sellerRe.exec(packageUrl);
       if (!sellerUrl) {
         MessageBox.information("Not a valid github repository address.");
         return;
       }
 
+      // seller created then stored in the above scope
       seller = new Seller(sellerUrl[0]);
+    }
+
+    packageBox.loadPackageButton.clicked.connect(this, function () {
+      loadPackage();
+      loadSeller(seller);
+    })
+
+    packageBox.newPackageButton.clicked.connect(this, function () {
+      loadPackage();
       loadSeller(seller);
     })
 
 
-    // load the info from the seller into the form
-    function loadSeller(seller){
+    /**
+     * load the info from the seller into the form
+     * @param {Seller} seller 
+     */
+    function loadSeller(seller) {
       var extensions = seller.extensions;
-      log.debug("found extensions", Object.keys(extensions))
+      if (Object.keys(extensions).length == 0) seller.addExtension("");
+
+      log.debug("found extensions", Object.keys(extensions));
 
       // update seller info
       authorBox.authorField.setText(seller.name);
@@ -419,28 +441,32 @@ function initStoreUI() {
 
       // add extensions to the drop down
       for (var i in extensions) {
-        list.addItem(extensions[i].name, extensions[i].id)
+        list.addItem(extensions[i].name, extensions[i].id);
       }
       updatePackageInfo(0);
 
       list["currentIndexChanged(int)"].connect(this, updatePackageInfo);
-        
+
       // save package when finishing editing any widget
-      registerPanel.versionField.editingFinished.connect(this, getPackageInfo)
-      registerPanel.compatibilityComboBox["currentIndexChanged(int)"].connect(this, getPackageInfo)
+      registerPanel.versionField.editingFinished.connect(this, getPackageInfo);
+      registerPanel.compatibilityComboBox["currentIndexChanged(int)"].connect(this, getPackageInfo);
       registerDescription.focusOutEvent = getPackageInfo;
-      registerPanel.isPackageCheckBox.stateChanged.connect(this, getPackageInfo)
-      registerPanel.keywordsPanel.keywordsField.editingFinished.connect(this, getPackageInfo)
-      registerPanel.repoField.editingFinished.connect(this, getPackageInfo)
+      registerPanel.isPackageCheckBox.stateChanged.connect(this, getPackageInfo);
+      registerPanel.keywordsPanel.keywordsField.editingFinished.connect(this, getPackageInfo);
+      registerPanel.repoField.editingFinished.connect(this, getPackageInfo);
     }
 
 
-    // populate description with info from extension package
+    /**
+     * @Slot
+     * Update the information on the form based on the currently selected item in the QComboBox
+     * @param {int} index    the index of the selected item in the QComboBox to use to update
+     */
     function updatePackageInfo(index) {
-      updating = true;
+      updating = true;  // tell other functions you're updating
       var extensionId = list.itemData(index, Qt.UserRole);
       if (extensionId == undefined) {
-       var extension = seller.addExtension(list.currentText);
+        var extension = seller.addExtension(list.currentText);
         list.setItemData(index, extension.id, Qt.UserRole);
       } else {
         var extension = seller.extensions[extensionId];
@@ -460,10 +486,12 @@ function initStoreUI() {
       updating = false;
     }
 
-    
-    // gather all the info from the form
+
+    /**
+     * gather all the info from the form and save into the extension package
+     */
     function getPackageInfo() {
-      if (updating) return;
+      if (updating) return;  // don't respond to signals while updating
       var extensionId = list.itemData(list.currentIndex, Qt.UserRole);
       var extension = seller.extensions[extensionId];
 
@@ -477,34 +505,203 @@ function initStoreUI() {
       extensionPackage.repository = registerPanel.repoField.text;
       extensionPackage.files = registerPanel.filesField.text.replace(/(, | ,)/g, ",").split(",");
 
-      log.debug("saving package:")
-      log.debug(JSON.stringify(extensionPackage, null, " "))
+      log.debug("saving package:");
+      log.debug(JSON.stringify(extensionPackage, null, " "));
       extension.package = extensionPackage;
     }
 
+    // Extension functions ------------------------------------------
+    function addExtension(){
+      var newName = Input.getText("Enter new extension name:", "", "Prompt");
+      var extension = seller.addExtension(newName);
+      list.addItem(newName, extension.id);
+      list.setCurrentIndex(list.findText(newName));
+    }
+
+    function removeExtension(){
+      var extensionId = list.itemData(list.currentIndex, Qt.UserRole);
+      var extension = seller.extensions[extensionId];
+    }
+
+
+
     // Pick Files From Repository -----------------------------------
-
+    /**
+     * brings up a dialog to select the files to include in the extension from a repository
+     */
     function pickFiles() {
-      log.debug('pick files')
+      log.debug('pick files');
 
-      var repository = new Repository(registerPanel.repoField.text);
+      var repoUrl = registerPanel.repoField.text;
+      var includedFiles = registerPanel.filesField.text.split(",");
 
-      var currentFolder = storelib.currentFolder;
-      var pickerUi = UiLoader.load(currentFolder + "/pickFiles.ui");
-      pickerUi.repoName = registerPanel.repoField.text;
+      // get a Repository object to fetch the content
+      var repository = new Repository(repoUrl);
       var files = repository.contents;
-      log.debug(JSON.stringify(files, null, " "))
+
+      if (!files) {
+        MessageBox.information("Repository url is not valid.");
+        return;
+      }
+      log.debug(JSON.stringify(files, null, " "));
+
+      // load and setup the dialog
+      var pickerUi = UiLoader.load(storelib.currentFolder + "/pickFiles.ui");
+      var filesPanel = pickerUi.filesSplitter.widget(0);
+      var fileList = filesPanel.repoContents;
+      var filterField = filesPanel.filterField;
+      var addFiles = filesPanel.addFilesButton;
+      var includedPanel = pickerUi.filesSplitter.widget(1);
+      var includedFilesList = includedPanel.includedFiles;
+      var removeFiles = includedPanel.removeFiles;
+
+      pickerUi.repoName.text = repoUrl;
+
+      // add a repo "root" item
+      var root = new QTreeWidgetItem(fileList, ["/"], 2048);
+      root.setData(0, Qt.UserRole, "/");
+      root.setIcon(0, new QIcon(folderIcon));
+      root.setExpanded(true);
+
+      // add items from repo to files list
+      var items = { "/": root };
+
+      for (var i in files) {
+        // format the files to start with "/" and end with it for folder
+        var filePath = "/" + files[i].path;
+        var path = filePath.split("/");
+        var fileName = path.splice(-1, 1, "") + (files[i].type == "tree" ? "/" : "");
+        var folder = path.join("/");
+        filePath = folder + fileName; // add a slash at the end of folders
+
+        var parent = items[folder];
+
+        var item = new QTreeWidgetItem(parent, [fileName], 2048);
+        if (files[i].type == "tree") item.setIcon(0, new QIcon(folderIcon));
+        item.setData(0, Qt.UserRole, filePath);
+        item.setExpanded(true);
+        items[filePath] = item;
+      }
+
+      // add the list of files included in the extension in the bottom list
+      for (var i in includedFiles) {
+        var fileItem = new QTreeWidgetItem(includedFilesList, [includedFiles[i]], 2048);
+        // colorise the included files
+        colorizeFiles(searchToRe("/" + includedFiles[i]), includedFileBackground);
+      }
+
+
+      /**
+       * highlight files with colors for included files and files that pass the filter when editing 
+       */
+      function highlightFiles() {
+        // remove all colors
+        colorizeFiles(/.*/, unselectedFileBackground);
+
+        // colorised files included by searches in includedFilesList
+        for (var i = 0; i < includedFilesList.topLevelItemCount; i++) {
+          var includedFiles = "/" + includedFilesList.topLevelItem(i).text(0);
+          colorizeFiles(searchToRe(includedFiles), includedFileBackground);
+        }
+
+        // colorise files currently searched for
+        var search = filterField.text;
+        if (search == "") search = "*";
+
+        var selection = fileList.selectedItems();
+        for (var i in selection) {
+          var baseFolder = selection[i].data(0, Qt.UserRole);
+          colorizeFiles(searchToRe(baseFolder + search), selectedFileBackground);
+        }
+
+      }
+
+
+      /**
+       * converts a file search string with wildcard and extensions to a regex search
+       * @param {string} search  the string to convert to a valid regex
+       */
+      function searchToRe(search) {
+        if (search.slice(-1) == "/") search += "*";
+
+        // sanitize input to prevent broken regex
+        search = search.replace(/\./g, "\\.")
+          // .replace(/\*/g, "[^/]*")   // this is to avoid selecting subfolders contents but do we want that?
+          .replace(/\*/g, ".*")
+          .replace(/\?/g, ".");
+
+        var searchRe = new RegExp("^" + search + "$", "i");
+
+        return searchRe;
+      }
+
+      /**
+       * colorise items based on regex
+       * @param {RegExp} search   items that pass the filter will be colored 
+       * @param {QBrush} color    a QBrush object that defines a background brush for QTreeWidgetItem 
+       */
+      function colorizeFiles(search, color) {
+        for (var i in items) {
+          if (!(items[i] instanceof QTreeWidgetItem)) continue;
+          if (i.match(search)) items[i].setBackground(0, color);
+        }
+      }
+
+      filterField.textChanged.connect(this, highlightFiles);
+      fileList.itemSelectionChanged.connect(this, highlightFiles);
+
+
+      // add file search to list
+      addFiles.clicked.connect(this, function () {
+        var selection = fileList.selectedItems();
+        for (var i in selection) {
+          var fileSearch = selection[i].data(0, Qt.UserRole) + filterField.text;
+          var fileItem = new QTreeWidgetItem(includedFilesList, [fileSearch.slice(1)], 2048);  // we remove the first "/" before saving
+        }
+
+        for (var i = selection.length - 1; i >= 0; i--) {
+          selection[i].setSelected(false);
+        }
+
+        filterField.text = "";
+      });
+
+
+      // remove the selection from the included List
+      removeFiles.clicked.connect(this, function () {
+        var selection = includedFilesList.selectedItems();
+        for (var i = selection.length - 1; i >= 0; i--) {
+          var selectedItem = includedFilesList.indexOfTopLevelItem(selection[i]);
+          includedFilesList.takeTopLevelItem(selectedItem);
+        }
+      })
+
+
+      // gather the selected files, close dialog and update package
+      pickerUi.confirmButton.clicked.connect(this, function () {
+        var includedFiles = [];
+        for (var i = 0; i < includedFilesList.topLevelItemCount; i++) {
+          includedFiles.push(includedFilesList.topLevelItem(i).text(0));
+        }
+        registerPanel.filesField.text = includedFiles.join(",");
+        pickerUi.close();
+      })
+
+      // cancel dialog
+      pickerUi.cancelButton.clicked.connect(this, function () {
+        pickerUi.close();
+      })
 
       pickerUi.show();
+
+      pickerUi.filesSplitter.setSizes([Math.round(pickerUi.filesSplitter.height * 0.8), Math.round(pickerUi.filesSplitter.height * 0.2)]);
     }
 
     registerPanel.filesPicker.clicked.connect(this, pickFiles);
-
     form.show();
   }
 
-  storeFrame.registerButton.clicked.connect(this, registerExtension)
-
+  storeFrame.registerButton.clicked.connect(this, registerExtension);
   ui.show();
 }
 

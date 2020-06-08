@@ -199,14 +199,14 @@
          <widget class="QToolButton" name="addExtensionButton">
           <property name="minimumSize">
            <size>
-            <width>22</width>
-            <height>22</height>
+            <width>18</width>
+            <height>18</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>19</width>
-            <height>19</height>
+            <width>18</width>
+            <height>18</height>
            </size>
           </property>
           <property name="text">
@@ -230,14 +230,14 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>22</width>
-            <height>22</height>
+            <width>18</width>
+            <height>18</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>19</width>
-            <height>19</height>
+            <width>18</width>
+            <height>18</height>
            </size>
           </property>
           <property name="text">

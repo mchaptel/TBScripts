@@ -1,8 +1,8 @@
 {
   "name": "ExtensionStore",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "compatibility": "Harmony Premium 16",
-  "description": "Changelog:<br>Implemented the dialog to register a new extension.(WIP)<br> Some bugfixes.",
+  "description": "Changelog:Updating an existing package should now be mostly working.",
   "isPackage": "true",
   "repository": "https://github.com/mchaptel/TBScripts/",
   "files": [

@@ -195,6 +195,24 @@ Object.defineProperty(Seller.prototype, "package", {
       this._tbpackage = tbpackage;
     }
     return this._tbpackage;
+  }, 
+  set: function(packageObject){
+    this._tbpackage = {
+      "name":this.name,
+      "website":this._url,
+      "social":"",
+      "repository":this._url,
+      "extensions":[],
+    }
+
+    var extensions = this.extensions;
+    for (var i in extensions){
+      this._tbpackage.extensions.push(extensions[i].package)
+    }
+
+    for (var i in packageObject) {
+      if (this._tbpackage.hasOwnProperty(i)) this._tbpackage[i] = packageObject[i];
+    }
   }
 });
 
@@ -302,7 +320,7 @@ Seller.prototype.removeExtension = function (id) {
 
 
 /**
- * 
+ * renames the given extension
  */
 Seller.prototype.renameExtension = function (id, name) {
   var extension = this._extensions[id];
@@ -315,20 +333,29 @@ Seller.prototype.renameExtension = function (id, name) {
   this.repository._extensions.push(extension)
 }
 
+
 /**
  * Generate a package file from the Seller
  */
-Seller.prototype.generatePackage = function () {
+Seller.prototype.exportPackage = function (destination) {
   var extensions = this.extensions;
-  var tbpackage = { name: this.name, repository: this._url, extensions: [] }
+  var tbpackage = { name: this.name, website:this.package.website, social:this.package.social, repository: this._url, extensions: [] }
 
   for (var i in extensions) {
     tbpackage.extensions.push(extensions[i].package)
   }
 
-  return tbpackage;
+  writeFile(destination, JSON.stringify(tbpackage, null, " "));
 }
 
+
+/**
+ * @param {string}  packageFile  the path of the file to load the package from
+ */
+Seller.prototype.loadFromFile = function(packageFile){
+  var tbpackage = JSON.parse(readFile(packageFile));
+  this.package = tbpackage;
+}
 
 // Repository Class --------------------------------------------
 /**

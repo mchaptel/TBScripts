@@ -402,7 +402,7 @@ function initStoreUI() {
       var sellerRe = /https:\/\/github.com\/[^\/]*\/[^\/]*\//i;
       var sellerUrl = sellerRe.exec(packageUrl);
       if (!sellerUrl) {
-        MessageBox.information("Not a valid github repository address.");
+        MessageBox.information("Enter a valid github repository address.");
         return;
       }
 
@@ -410,13 +410,28 @@ function initStoreUI() {
       seller = new Seller(sellerUrl[0]);
     }
 
+    
     packageBox.loadPackageButton.clicked.connect(this, function () {
+      seller = {};
       loadPackage();
       loadSeller(seller);
     })
 
-    packageBox.newPackageButton.clicked.connect(this, function () {
+
+    packageBox.loadPackageFromFileButton.clicked.connect(this, function () {
+      seller = {};
       loadPackage();
+      var packageFile = QFileDialog.getOpenFileName(0, "Open Package File", System.getenv("userprofile"), "tbpackage.json")
+      if (!packageFile) return;
+      seller.loadFromFile(packageFile);
+      loadSeller(seller);
+    })
+
+
+    packageBox.newPackageButton.clicked.connect(this, function () {
+      seller = {};
+      loadPackage();
+      seller.package = {}
       loadSeller(seller);
     })
 
@@ -426,6 +441,10 @@ function initStoreUI() {
      * @param {Seller} seller 
      */
     function loadSeller(seller) {
+      if (!seller.package){
+        MessageBox.information("No tbpackage.json found in repository.")
+        return;
+      } 
       var extensions = seller.extensions;
       if (Object.keys(extensions).length == 0) seller.addExtension("");
 
@@ -448,12 +467,12 @@ function initStoreUI() {
       list["currentIndexChanged(int)"].connect(this, updatePackageInfo);
 
       // save package when finishing editing any widget
-      registerPanel.versionField.editingFinished.connect(this, getPackageInfo);
-      registerPanel.compatibilityComboBox["currentIndexChanged(int)"].connect(this, getPackageInfo);
-      registerDescription.focusOutEvent = getPackageInfo;
-      registerPanel.isPackageCheckBox.stateChanged.connect(this, getPackageInfo);
-      registerPanel.keywordsPanel.keywordsField.editingFinished.connect(this, getPackageInfo);
-      registerPanel.repoField.editingFinished.connect(this, getPackageInfo);
+      registerPanel.versionField.editingFinished.connect(this, savePackageInfo);
+      registerPanel.compatibilityComboBox["currentIndexChanged(int)"].connect(this, savePackageInfo);
+      registerDescription.focusOutEvent = savePackageInfo;
+      registerPanel.isPackageCheckBox.stateChanged.connect(this, savePackageInfo);
+      registerPanel.keywordsPanel.keywordsField.editingFinished.connect(this, savePackageInfo);
+      registerPanel.repoField.editingFinished.connect(this, savePackageInfo);
     }
 
 
@@ -490,7 +509,7 @@ function initStoreUI() {
     /**
      * gather all the info from the form and save into the extension package
      */
-    function getPackageInfo() {
+    function savePackageInfo() {
       if (updating) return;  // don't respond to signals while updating
       var extensionId = list.itemData(list.currentIndex, Qt.UserRole);
       var extension = seller.extensions[extensionId];
@@ -511,20 +530,36 @@ function initStoreUI() {
     }
 
     // Extension functions ------------------------------------------
-    function addExtension(){
+    function addExtension() {
       var newName = Input.getText("Enter new extension name:", "", "Prompt");
+      if (!newName) return;
       var extension = seller.addExtension(newName);
       list.addItem(newName, extension.id);
       list.setCurrentIndex(list.findText(newName));
     }
 
-    function removeExtension(){
+    function removeExtension() {
       var extensionId = list.itemData(list.currentIndex, Qt.UserRole);
-      var extension = seller.extensions[extensionId];
+      var name = seller.extensions[extensionId].name;
+      seller.removeExtension[extensionId];
+      list.removeItem(list.findText(name));
     }
 
 
+    list["activated(QString)"].connect(this, function(text){
+      var extensionId = list.itemData(list.currentIndex, Qt.UserRole);
+      if (list.findText(text) == -1){
+        var extensionId = list.itemData(list.currentIndex, Qt.UserRole);
+        var name = list.currentText;
+        list.setItemText(list.currentIndex, name)
+        seller.renameExtension(extensionId, name);
+        savePackageInfo();
+      }
+    })
 
+    registerPanel.addExtensionButton.clicked.connect(this, addExtension);
+    registerPanel.removeExtensionButton.clicked.connect(this, removeExtension);
+    
     // Pick Files From Repository -----------------------------------
     /**
      * brings up a dialog to select the files to include in the extension from a repository
@@ -570,10 +605,10 @@ function initStoreUI() {
         // format the files to start with "/" and end with it for folder
         var filePath = "/" + files[i].path;
         var path = filePath.split("/");
-        var fileName = path.splice(-1, 1, "") + (files[i].type == "tree" ? "/" : "");
-        var folder = path.join("/");
-        filePath = folder + fileName; // add a slash at the end of folders
+        var fileName = path.splice(-1, 1, "") + (files[i].type == "tree" ? "/" : ""); // add a slash at the end of folders
 
+        var folder = path.join("/");
+        filePath = folder + fileName;
         var parent = items[folder];
 
         var item = new QTreeWidgetItem(parent, [fileName], 2048);
@@ -585,6 +620,7 @@ function initStoreUI() {
 
       // add the list of files included in the extension in the bottom list
       for (var i in includedFiles) {
+        if (includedFiles[i] == "") continue;
         var fileItem = new QTreeWidgetItem(includedFilesList, [includedFiles[i]], 2048);
         // colorise the included files
         colorizeFiles(searchToRe("/" + includedFiles[i]), includedFileBackground);
@@ -674,6 +710,7 @@ function initStoreUI() {
           var selectedItem = includedFilesList.indexOfTopLevelItem(selection[i]);
           includedFilesList.takeTopLevelItem(selectedItem);
         }
+        highlightFiles();
       })
 
 
@@ -692,12 +729,23 @@ function initStoreUI() {
         pickerUi.close();
       })
 
+      // Setting the appearance of the splitter
       pickerUi.show();
-
-      pickerUi.filesSplitter.setSizes([Math.round(pickerUi.filesSplitter.height * 0.8), Math.round(pickerUi.filesSplitter.height * 0.2)]);
+      pickerUi.filesSplitter.setSizes([pickerUi.filesSplitter.height * 0.8, pickerUi.filesSplitter.height * 0.2]);
     }
 
     registerPanel.filesPicker.clicked.connect(this, pickFiles);
+
+    // Generate Package ---------------------------------------
+    form.generateButton.clicked.connect(this, function () {
+      var saveDestination = QFileDialog.getSaveFileName(0, "Save Package", System.getenv("userprofile"), "tbpackage.json");
+      seller.package.website = authorBox.websiteField.text;
+      seller.package.social = authorBox.socialField.text;
+      if (!saveDestination) return; 
+      seller.exportPackage(saveDestination);
+      MessageBox.information("Export succesful. Upload the file\n"+saveDestination+"\nto the root of the repository\n"+packageBox.packageUrl.text+"\nto register your extensions.\n\nMake sure your repository is present in the list at this address :\nhttps://github.com/mchaptel/TBScripts/blob/master/ExtensionStore/packages/ExtensionStore/SELLERSLIST")
+    })
+
     form.show();
   }
 

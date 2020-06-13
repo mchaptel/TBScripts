@@ -195,23 +195,23 @@ Object.defineProperty(Seller.prototype, "package", {
       this._tbpackage = tbpackage;
     }
     return this._tbpackage;
-  }, 
-  set: function(packageObject){
+  },
+  set: function (packageObject) {
     this._tbpackage = {
-      "name":this.name,
-      "website":this._url,
-      "social":"",
-      "repository":this._url,
-      "extensions":[],
-    }
-
-    var extensions = this.extensions;
-    for (var i in extensions){
-      this._tbpackage.extensions.push(extensions[i].package)
+      "name": this.name,
+      "website": this._url,
+      "social": "",
+      "repository": this._url,
+      "extensions": [],
     }
 
     for (var i in packageObject) {
       if (this._tbpackage.hasOwnProperty(i)) this._tbpackage[i] = packageObject[i];
+    }
+
+    var extensions = this.extensions;
+    for (var i in extensions) {
+      this._tbpackage.extensions.push(extensions[i].package)
     }
   }
 });
@@ -228,6 +228,33 @@ Object.defineProperty(Seller.prototype, "name", {
       this._name = tbpackage.name;
     }
     return this._name;
+  }
+})
+
+
+/**
+ * get the github url for the user associated with the master Repository.
+ * @type {string}
+ */
+Object.defineProperty(Seller.prototype, "apiUrl", {
+  get: function () {
+    return "https://api.github.com/users/" + this.masterRepositoryName.split("/")[0];
+  }
+});
+
+
+/**
+ * Get the icon url for the user associated with the master repository
+ * @type {string}
+ */
+Object.defineProperty(Seller.prototype, "iconUrl", {
+  get: function () {
+    if (typeof this._icon === 'undefined') {
+      var userInfo = webQuery.get(this.apiUrl);
+      if (!userInfo.hasOwnProperty("avatar_url")) this._icon = "";
+      this._icon = userInfo.avatar_url;
+    }
+    return this._icon
   }
 })
 
@@ -313,9 +340,9 @@ Seller.prototype.addExtension = function (name) {
  */
 Seller.prototype.removeExtension = function (id) {
   var repository = this._extensions[id].repository;
-  var ids = repository.extensions.map(function (x) { return x.id })
-  repository.extensions.splice(ids.indexOf(id), 1)
-  delete this._extensions[id]
+  var ids = repository.extensions.map(function (x) { return x.id });
+  repository.extensions.splice(ids.indexOf(id), 1);
+  delete this._extensions[id];
 }
 
 
@@ -326,11 +353,11 @@ Seller.prototype.renameExtension = function (id, name) {
   var extension = this._extensions[id];
   var repository = extension.repository;
 
-  this.removeExtension(id)
+  this.removeExtension(id);
   extension.name = name;
 
-  this._extensions[extension.id] = extension
-  this.repository._extensions.push(extension)
+  this._extensions[extension.id] = extension;
+  repository._extensions.push(extension);
 }
 
 
@@ -339,7 +366,7 @@ Seller.prototype.renameExtension = function (id, name) {
  */
 Seller.prototype.exportPackage = function (destination) {
   var extensions = this.extensions;
-  var tbpackage = { name: this.name, website:this.package.website, social:this.package.social, repository: this._url, extensions: [] }
+  var tbpackage = { name: this.name, website: this.package.website, social: this.package.social, repository: this._url, extensions: [] }
 
   for (var i in extensions) {
     tbpackage.extensions.push(extensions[i].package)
@@ -352,7 +379,7 @@ Seller.prototype.exportPackage = function (destination) {
 /**
  * @param {string}  packageFile  the path of the file to load the package from
  */
-Seller.prototype.loadFromFile = function(packageFile){
+Seller.prototype.loadFromFile = function (packageFile) {
   var tbpackage = JSON.parse(readFile(packageFile));
   this.package = tbpackage;
 }
@@ -608,14 +635,22 @@ Object.defineProperty(Extension.prototype, "package", {
 Object.defineProperty(Extension.prototype, "rootFolder", {
   get: function () {
     if (typeof this._rootFolder === 'undefined') {
-      this._rootFolder = "";
       var files = this.package.files;
-      for (var i in files) {
-        // looking for a folder in the package files list
-        if (files[i].slice(-1) == "/") {
-          this._rootFolder = files[i];
-          break;
+      if (files.length == 1){
+        this._rootFolder = files[0].slice(0, files[0].lastIndexOf("/"));
+      }else{
+        var folders = files[0].split("/");
+        var rootFolder = "";
+
+        mainLoop:
+        for (var i=0; i<folders.length; i++) {
+          var folder = folders.slice(0, i).join("/")+"/";
+          for (var j in files){
+            if (files[j].indexOf(folder) == -1) break mainLoop;
+          }
+          rootFolder = folder;
         }
+        this._rootFolder = rootFolder;
       }
     }
 

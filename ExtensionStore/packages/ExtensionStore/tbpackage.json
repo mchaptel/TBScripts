@@ -1,6 +1,6 @@
 {
   "name": "ExtensionStore",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "compatibility": "Harmony Premium 16",
   "description": "Changelog:register panel now working.",
   "isPackage": "true",

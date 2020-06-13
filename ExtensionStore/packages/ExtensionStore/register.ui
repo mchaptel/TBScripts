@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>610</width>
-    <height>718</height>
+    <width>758</width>
+    <height>679</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -37,6 +37,9 @@
           <property name="toolTip">
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select a repository from which to load the tbpackage.json package file to update/add an extension to.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
+          <property name="placeholderText">
+           <string>Enter a valid github address, even when creating a new package.</string>
+          </property>
          </widget>
         </item>
        </layout>
@@ -57,6 +60,9 @@
             <height>16777215</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Load the tbpackage.json file hosted on the above repository.</string>
+          </property>
           <property name="text">
            <string>Load from Url</string>
           </property>
@@ -64,6 +70,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="loadPackageFromFileButton">
+          <property name="toolTip">
+           <string>Load the extensions from a local tbpackage.json file.</string>
+          </property>
           <property name="text">
            <string>Load From File</string>
           </property>
@@ -71,6 +80,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="newPackageButton">
+          <property name="toolTip">
+           <string>Create a new blank extension package.</string>
+          </property>
           <property name="text">
            <string>Create New</string>
           </property>
@@ -88,13 +100,24 @@
      </property>
      <layout class="QFormLayout" name="formLayout_3">
       <property name="topMargin">
-       <number>5</number>
+       <number>6</number>
       </property>
       <item row="0" column="1">
-       <widget class="QLineEdit" name="authorField"/>
+       <widget class="QLineEdit" name="authorField">
+        <property name="toolTip">
+         <string>The extension maker name that will appear in the store.</string>
+        </property>
+        <property name="placeholderText">
+         <string>The extension maker name that will appear in the store.</string>
+        </property>
+       </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLineEdit" name="websiteField"/>
+       <widget class="QLineEdit" name="websiteField">
+        <property name="placeholderText">
+         <string>Enter a website here if you have one.</string>
+        </property>
+       </widget>
       </item>
       <item row="1" column="0">
        <widget class="QLabel" name="websiteLabel">
@@ -122,6 +145,9 @@
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Paste here the html for any widget (donate button, instagram or gumroad links, etc) that must appear under the author name in the script description.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
+        <property name="placeholderText">
+         <string>Paste here the html for any social link/donate button widget you want to appear.</string>
+        </property>
        </widget>
       </item>
      </layout>
@@ -134,7 +160,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <property name="topMargin">
-       <number>3</number>
+       <number>6</number>
       </property>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
@@ -150,7 +176,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Extension name:</string>
+           <string>Extension:</string>
           </property>
          </widget>
         </item>
@@ -164,7 +190,7 @@
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>3</width>
+            <width>6</width>
             <height>0</height>
            </size>
           </property>
@@ -184,6 +210,9 @@
             <height>0</height>
            </size>
           </property>
+          <property name="focusPolicy">
+           <enum>Qt::StrongFocus</enum>
+          </property>
           <property name="editable">
            <bool>true</bool>
           </property>
@@ -199,15 +228,18 @@
          <widget class="QToolButton" name="addExtensionButton">
           <property name="minimumSize">
            <size>
-            <width>18</width>
-            <height>18</height>
+            <width>20</width>
+            <height>20</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>18</width>
-            <height>18</height>
+            <width>20</width>
+            <height>20</height>
            </size>
+          </property>
+          <property name="toolTip">
+           <string>Add a new extension.</string>
           </property>
           <property name="text">
            <string>+</string>
@@ -230,15 +262,18 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>18</width>
-            <height>18</height>
+            <width>20</width>
+            <height>20</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>18</width>
-            <height>18</height>
+            <width>20</width>
+            <height>20</height>
            </size>
+          </property>
+          <property name="toolTip">
+           <string>Delete the currently selected extension.</string>
           </property>
           <property name="text">
            <string>x</string>
@@ -248,6 +283,35 @@
             <width>19</width>
             <height>19</height>
            </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Maximum</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>6</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="renameExtensionButton">
+          <property name="maximumSize">
+           <size>
+            <width>55</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>rename</string>
           </property>
          </widget>
         </item>
@@ -279,6 +343,12 @@
             <height>16777215</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Set the version of your extension. Changing this value will notify users that an update has been published and allow them to download the extension again.</string>
+          </property>
+          <property name="placeholderText">
+           <string>0.0.0</string>
+          </property>
          </widget>
         </item>
         <item>
@@ -296,7 +366,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit"/>
+         <widget class="QLineEdit" name="licenseType">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Choose an open source license for your extension and specify it here. &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Using a license protects your code and allows people to safely use the code you write. The license file will have to be included in the repository. &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Visit here to learn more about open source licenses: &lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://choosealicense.com/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://choosealicense.com/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="placeholderText">
+           <string>(ex: MPL v2, MIT, GNU GPL v3...)</string>
+          </property>
+         </widget>
         </item>
         <item>
          <spacer name="horizontalSpacer_6">
@@ -320,6 +397,9 @@
         </item>
         <item>
          <widget class="QComboBox" name="compatibilityComboBox">
+          <property name="toolTip">
+           <string>This specifies which versions of Harmony is required for the extension to work.</string>
+          </property>
           <item>
            <property name="text">
             <string>Harmony Premium 17</string>
@@ -425,6 +505,12 @@ p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
+         <property name="acceptRichText">
+          <bool>false</bool>
+         </property>
+         <property name="placeholderText">
+          <string>Enter a description for the extension here. &lt;p&gt;Supports html&lt;/p&gt;.</string>
+         </property>
         </widget>
         <widget class="QFrame" name="htmlPanel">
          <property name="sizePolicy">
@@ -468,6 +554,9 @@ p, li { white-space: pre-wrap; }
            <property name="toolTip">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Those keywords will help users discover your script in the Store.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
+           <property name="placeholderText">
+            <string>Enter Keywords to help users find your extension.</string>
+           </property>
           </widget>
          </item>
         </layout>
@@ -490,6 +579,9 @@ p, li { white-space: pre-wrap; }
         </item>
         <item row="0" column="1">
          <widget class="QLineEdit" name="repoField">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the repository that will hold the files of the extension.&lt;/p&gt;&lt;p&gt;This can be a different repository from the main repository where the tbpackage.json file is uploaded.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
           <property name="text">
            <string/>
           </property>

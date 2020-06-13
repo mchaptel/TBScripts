@@ -165,7 +165,7 @@ function Seller(repoUrl) {
  */
 Object.defineProperty(Seller.prototype, "dlUrl", {
   get: function () {
-    return "https://raw.githubusercontent.com/" + this.masterRepositoryName + "master/";
+    return "https://raw.githubusercontent.com/" + this.masterRepositoryName + "master";
   }
 });
 
@@ -178,7 +178,7 @@ Object.defineProperty(Seller.prototype, "package", {
     this.log.debug("getting package for " + this.masterRepositoryName);
     if (typeof this._tbpackage === 'undefined') {
       this._tbpackage = {};
-      var tbpackage = webQuery.get(this.dlUrl + "tbpackage.json");
+      var tbpackage = webQuery.get(this.dlUrl + "/tbpackage.json");
 
       if (tbpackage.hasOwnProperty("message")) {
         if (tbpackage.message == "Not Found") {
@@ -395,6 +395,7 @@ Seller.prototype.loadFromFile = function (packageFile) {
  */
 function Repository(url) {
   this.log = new Logger("Repository")
+  if (url.slice(-1) != "/") url += "/";
   this._url = url;
   this.name = this._url.replace("https://github.com/", "")
 }
@@ -419,7 +420,7 @@ Object.defineProperty(Repository.prototype, "apiUrl", {
  */
 Object.defineProperty(Repository.prototype, "dlUrl", {
   get: function () {
-    return "https://raw.githubusercontent.com/" + this.name + "master/";
+    return "https://raw.githubusercontent.com/" + this.name + "master";
   }
 });
 
@@ -434,7 +435,7 @@ Object.defineProperty(Repository.prototype, "package", {
   get: function () {
     this.log.debug("getting repos package for repo " + this.apiUrl);
     if (typeof this._package === 'undefined') {
-      var tbpackage = webQuery.get(this.dlUrl + "tbpackage.json");
+      var tbpackage = webQuery.get(this.dlUrl + "/tbpackage.json");
 
       if (tbpackage.hasOwnProperty("message")) {
         if (tbpackage.message == "Not Found") {
@@ -468,8 +469,14 @@ Object.defineProperty(Repository.prototype, "contents", {
 
       var tree = contents.tree;
 
-      this.log.debug(JSON.stringify(tree, null, " "))
-      this._contents = tree;
+      this.log.debug(JSON.stringify(tree, null, " "));
+      // this._contents = tree;
+
+      var files = tree.map(function (file) {
+        if (file.type == "tree") return {path:"/" + file.path + "/", size: file.size};
+        if (file.type == "blob") return {path:"/" + file.path, size: file.size};
+      })
+      this._contents = files;
     }
     return this._contents;
   }
@@ -529,45 +536,53 @@ Object.defineProperty(Repository.prototype, "masterBranchTree", {
  * @example
  * // files json contain the following fields:
  * {
- *   "name": "configure.js",
- *   "path": "ScriptsShortcuts/packages/ScriptsShortcuts/configure.js",
- *   "sha": "1ad6843dfddd6d296fa69861707e482db2629c3d",
- *   "size": 2890,
- *   "url": "https://api.github.com/repos/mchaptel/TBScripts/contents/ScriptsShortcuts/packages/ScriptsShortcuts/configure.js?ref=master",
- *   "html_url": "https://github.com/mchaptel/TBScripts/blob/master/ScriptsShortcuts/packages/ScriptsShortcuts/configure.js",
- *   "git_url": "https://api.github.com/repos/mchaptel/TBScripts/git/blobs/1ad6843dfddd6d296fa69861707e482db2629c3d",
- *   "download_url": "https://raw.githubusercontent.com/mchaptel/TBScripts/master/ScriptsShortcuts/packages/ScriptsShortcuts/configure.js",
- *   "type": "file",
- *   "_links": {
- *     "self": "https://api.github.com/repos/mchaptel/TBScripts/contents/ScriptsShortcuts/packages/ScriptsShortcuts/configure.js?ref=master",
- *     "git": "https://api.github.com/repos/mchaptel/TBScripts/git/blobs/1ad6843dfddd6d296fa69861707e482db2629c3d",
- *     "html": "https://github.com/mchaptel/TBScripts/blob/master/ScriptsShortcuts/packages/ScriptsShortcuts/configure.js"
- *   }
+ *  "path": "openHarmony_install.js",
+ *  "mode": "100644",
+ *  "type": "blob",
+ *  "sha": "4bede358579e1a6faee72ccf37f8c84228bd742f",
+ *  "size": 8683,
+ *  "url": "https://api.github.com/repos/cfourney/OpenHarmony/git/blobs/4bede358579e1a6faee72ccf37f8c84228bd742f"
  * }
  */
-Repository.prototype.getFiles = function (folder, filter) {
+Repository.prototype.getFiles = function (filter) {
   if (typeof filter === 'undefined') var filter = /.*/;
-  if (typeof filter === 'string') {
-    if (filter == "") filter = "*"           // empty string for filter is a matchall expression
-    filter = filter.replace(/\./g, "\\.");   // escape dots in filter before changing into regex
-    filter = filter.replace(/\*/g, ".*");  // transform * into regex wildcard search
-    filter = RegExp(filter, "i");            // add ignore case flag and convert string to regex
+
+  var contents = this.contents;
+  var paths = this.contents.map(function(x){return x.path})
+
+  this.log.debug(paths.join("\n"))
+  var search = this.searchToRe(filter)
+
+  this.log.debug("getting files in repository that match search " + search)
+
+  var results = []
+  for (var i in paths) {
+    // add files that match the filter but not folders
+    if (paths[i].match(search) && paths[i].slice(-1)!="/") results.push(contents[i])
   }
 
-  this.log.debug("getting files inside " + folder + " that match filter " + filter)
-
-  var url = this.apiUrl + "contents/" + folder;
-
-  var search = [];
-
-  var files = webQuery.get(url);
-  for (var i in files) {
-    if (files[i].type == "file" && files[i].name.match(filter)) search.push(files[i]);
-    if (files[i].type == "dir") search = search.concat(this.getFiles(folder + "/" + files[i].name));
-  }
-
-  return search;
+  return results;
 }
+
+
+/**
+ * @private
+ * converts a file system type search to a regex
+ */
+Repository.prototype.searchToRe = function (search) {
+  if (search.slice(-1) == "/") search += "*";
+
+  // sanitize input to prevent broken regex
+  search = search.replace(/\./g, "\\.")
+                 // .replace(/\*/g, "[^/]*")   // this is to avoid selecting subfolders contents but do we want that?
+                 .replace(/\*/g, ".*")
+                 .replace(/\?/g, ".");
+
+  var searchRe = new RegExp("^" + search + "$", "i");
+
+  return searchRe;
+}
+
 
 
 // Extension Class ---------------------------------------------------
@@ -636,16 +651,16 @@ Object.defineProperty(Extension.prototype, "rootFolder", {
   get: function () {
     if (typeof this._rootFolder === 'undefined') {
       var files = this.package.files;
-      if (files.length == 1){
-        this._rootFolder = files[0].slice(0, files[0].lastIndexOf("/"));
-      }else{
+      if (files.length == 1) {
+        this._rootFolder = files[0].slice(0, files[0].lastIndexOf("/")+1);
+      } else {
         var folders = files[0].split("/");
         var rootFolder = "";
 
         mainLoop:
-        for (var i=0; i<folders.length; i++) {
+        for (var i = 0; i < folders.length; i++) {
           var folder = folders.slice(0, i).join("/")+"/";
-          for (var j in files){
+          for (var j in files) {
             if (files[j].indexOf(folder) == -1) break mainLoop;
           }
           rootFolder = folder;
@@ -653,7 +668,7 @@ Object.defineProperty(Extension.prototype, "rootFolder", {
         this._rootFolder = rootFolder;
       }
     }
-
+    this.log.debug("rootfolder: "+this._rootFolder)
     return this._rootFolder;
   }
 });
@@ -689,13 +704,8 @@ Object.defineProperty(Extension.prototype, "files", {
       var files = [];
 
       for (var i in packageFiles) {
-        var file = packageFiles[i].split("/");
-        var search = file.pop();
-        var folder = file.join("/");
-
-        // log (folder, search)
-
-        var results = this.repository.getFiles(folder, search)
+        this.log.debug("getting extension files matching : "+packageFiles[i])
+        var results = this.repository.getFiles("/"+ packageFiles[i]);
         if (results.length > 0) files = files.concat(results);
       }
 
@@ -794,7 +804,7 @@ Extension.prototype.currentVersionIsOlder = function (version) {
  */
 function LocalExtensionList(store) {
   this.log = new Logger("LocalExtensionList")
-  this._installFolder = specialFolders.userScripts + "/";             // default install folder, can be modified with installFolder property
+  this._installFolder = specialFolders.userScripts;             // default install folder, can be modified with installFolder property
   this._listFile = specialFolders.userConfig + "/.extensionsList";
   // if (this.list.length == 0) this.createListFile(store);              // initialize the list file that contains the extensions (!heavy! CBB: do it at a different time?)
 }
@@ -867,7 +877,7 @@ Object.defineProperty(LocalExtensionList.prototype, "list", {
  * gets the install location for a given extension
  */
 LocalExtensionList.prototype.installLocation = function (extension) {
-  return this.installFolder + (extension.package.isPackage ? "packages/" + extension.name + "/" : "")
+  return this.installFolder + (extension.package.isPackage ? "/packages/" + extension.name : "")
 }
 
 
@@ -929,6 +939,10 @@ LocalExtensionList.prototype.uninstall = function (extension) {
     this.log.debug("removing file " + files[i])
     var file = new File(files[i])
     if (file.exists) file.remove();
+
+    // remove containing folder if all files were removed
+    var folder = files[i].slice(0, files[i].lastIndexOf("/") + 1);
+    if (listFiles(folder).length == 0) (new Dir(folder)).rmdirs();
   }
   if (extension.package.isPackage) {
     var folder = new Dir(this.installFolder + "packages/" + extension.name);
@@ -936,6 +950,7 @@ LocalExtensionList.prototype.uninstall = function (extension) {
     if (folder.exists) folder.rmdirs();
   }
   this.removeFromList(extension);
+
   return true;
 }
 
@@ -1048,7 +1063,7 @@ function ExtensionDownloader(extension) {
   this.log.level = this.log.LEVEL.LOG;
   this.repository = extension.repository;
   this.extension = extension;
-  this.destFolder = specialFolders.temp + "/" + extension.name + "_" + extension.version + "/";
+  this.destFolder = specialFolders.temp + "/" + extension.name + "_" + extension.version;
 }
 
 
@@ -1067,17 +1082,19 @@ ExtensionDownloader.prototype.downloadFiles = function () {
 
   var files = this.extension.files;
 
+  this.log.debug("downloading files : "+files.map(function(x){return x.path}).join("\n"))
+
   for (var i = 0; i < files.length; i++) {
     // make the directory
     var dest = destPaths[i].split("/").slice(0, -1).join("/")
     var dir = new QDir(dest);
     if (!dir.exists()) dir.mkpath(dest);
 
-    webQuery.download(files[i].download_url, destPaths[i]);
+    webQuery.download(this.getDownloadUrl(files[i].path), destPaths[i]);
     var dlFile = new File(destPaths[i]);
     if (dlFile.size == files[i].size) {
       // download complete!
-      this.log.debug("successfully downloaded " + files[i].name + " to location : " + destPaths[i])
+      this.log.debug("successfully downloaded " + files[i].path + " to location : " + destPaths[i])
       dlFiles.push(destPaths[i])
     } else {
       throw new Error("Downloaded file " + destPaths[i] + " size does not match expected size : " + dlFile.size + " " + files[i].size)
@@ -1085,6 +1102,11 @@ ExtensionDownloader.prototype.downloadFiles = function () {
   }
 
   return dlFiles;
+}
+
+
+ExtensionDownloader.prototype.getDownloadUrl = function (filePath) {
+  return this.extension.repository.dlUrl + filePath;
 }
 
 
@@ -1176,7 +1198,7 @@ CURL.prototype.query = function (query, wait) {
 
     return output;
   } catch (err) {
-    this.log.error(err);
+    this.log.error("Error with curl command: \n"+command.join(" ")+"\n"+err);
     return null;
   }
 }
@@ -1205,7 +1227,7 @@ CURL.prototype.get = function (command, wait) {
 
     return output;
   } catch (err) {
-    this.log.error(err);
+    this.log.error("Error with curl command: \n"+command.join(" ")+"\n"+err);
     return null;
   }
 }
@@ -1341,6 +1363,19 @@ function writeFile(filename, content, append) {
 }
 
 
+// gets the list of files in the folder that match the filter
+function listFiles(folder, filter) {
+  if (typeof filter === 'undefined') var filter = "*"
+
+  var dir = new QDir;
+  dir.setPath(folder);
+  dir.setNameFilters([filter]);
+  dir.setFilter(QDir.Files);
+  var files = dir.entryList();
+
+  return files;
+}
+
 // returns the folder of this file
 var currentFolder = __file__.split("/").slice(0, -1).join("/");
 if (currentFolder.indexOf("repo") == -1) Logger.level = 1;   // disable logging if extension isn't in a repository
@@ -1379,7 +1414,7 @@ function recursiveFileCopy(folder, destination) {
 
     return output;
   } catch (err) {
-    log.error(err);
+    log.error("error on line "+err.lineNumber+" of file "+err.fileName+": \n"+err);
     return null;
   }
 }

@@ -257,6 +257,9 @@ function initStoreUI() {
         storeDescriptionPanel.installButton.removeAction(installAction);
         storeDescriptionPanel.installButton.removeAction(uninstallAction);
         storeDescriptionPanel.installButton.setDefaultAction(updateAction);
+        
+        this.setToolTip(1, "Some files from this extension are missing.");
+        this.setText(1, "!");
       }
     } else {
       // installAction.setText("Install")
@@ -313,7 +316,7 @@ function initStoreUI() {
       MessageBox.information("Extension " + extension.name + " v" + extension.version + "\nwas installed correctly.");
     } catch (err) {
       log.error(err);
-      MessageBox.information("There was an error while installing extension\n" + extension.name + " v" + extension.version + ":\n\n" + err);
+      MessageBox.information("There was an error while installing extension\n" + extension.name + " v" + extension.version + ":\n\n" + err + " file: " + err.fileName + " line: " + err.lineNumber);
     }
     localList.refreshExtensions();
     updateStoreList();
@@ -414,7 +417,7 @@ function initStoreUI() {
       return sellerUrl[0];
     }
 
-    
+
     packageBox.loadPackageButton.clicked.connect(this, function () {
       var url = getRepoUrl();
       if (!url) return
@@ -452,10 +455,10 @@ function initStoreUI() {
      * @param {Seller} seller 
      */
     function loadSeller(seller) {
-      if (!seller.package){
+      if (!seller.package) {
         MessageBox.information("No tbpackage.json found in repository.")
         return;
-      } 
+      }
 
       resetPanel();
 
@@ -472,20 +475,20 @@ function initStoreUI() {
 
       // add extensions to the drop down
       for (var i in extensions) {
-        log.debug("adding extension "+extensions[i].name)
+        log.debug("adding extension " + extensions[i].name)
         list.addItem(extensions[i].name, extensions[i].id);
       }
       updatePackageInfo(0);
     }
 
-    function resetPanel(){
+    function resetPanel() {
       updating = true
       authorBox.authorField.setText("");
       authorBox.websiteField.setText("");
       authorBox.socialField.setText("");
 
       // in case of reloading, first delete all existing items in drop down
-      while (list.count){
+      while (list.count) {
         list.removeItem(0);
       }
 
@@ -540,16 +543,16 @@ function initStoreUI() {
       var extension = seller.extensions[extensionId];
 
       var extensionPackage = {};
-      
+
       extensionPackage.name = list.currentText;
       extensionPackage.author = authorBox.authorField.text;
       extensionPackage.version = registerPanel.versionField.text;
       extensionPackage.compatibility = registerPanel.compatibilityComboBox.currentText;
-      extensionPackage.description = registerDescription.document().toPlainText();
+      extensionPackage.description = registerDescription.document().toHtml();
       extensionPackage.isPackage = registerPanel.isPackageCheckBox.checked;
       extensionPackage.keywords = registerPanel.keywordsPanel.keywordsField.text.replace(/ /g, "").split(",");
       extensionPackage.repository = registerPanel.repoField.text;
-      extensionPackage.license  = registerPanel.licenseType.text;
+      extensionPackage.license = registerPanel.licenseType.text;
       extensionPackage.files = registerPanel.filesField.text.replace(/(, | ,)/g, ",").split(",");
 
       log.debug("saving package:");
@@ -595,11 +598,11 @@ function initStoreUI() {
      * @Slot
      * Rename the extension when activating the comboBox with a field that isn't part of the existing values
      */
-    function renameExtension(){
+    function renameExtension() {
       if (list.count == 0) return
       var newName = Input.getText("Rename extension:", list.currentText, "Prompt");
       if (!newName) return;
-      log.debug("renaming to "+newName)
+      log.debug("renaming to " + newName)
 
       var extensionId = list.itemData(list.currentIndex, Qt.UserRole);
       var extension = seller.extensions[extensionId];
@@ -655,17 +658,26 @@ function initStoreUI() {
       var items = { "/": root };
 
       for (var i in files) {
-        // format the files to start with "/" and end with it for folder
-        var filePath = "/" + files[i].path;
-        var path = filePath.split("/");
-        var fileName = path.splice(-1, 1, "") + (files[i].type == "tree" ? "/" : ""); // add a slash at the end of folders
+        // get the file/folder name and the parent folder
+        var filePath = files[i].path;
+        var isFolder = (filePath.slice(-1) == "/");
+        if (isFolder) filePath = filePath.slice(0, -1); // remove the last slash for the split
 
-        var folder = path.join("/");
+        log.debug(filePath)
+
+        var path = filePath.split("/");
+        log.debug(path)
+        var fileName = path.pop() + (isFolder ? "/" : "")// add a slash at the end of folders
+        var folder = path.join("/") + "/";
+
         filePath = folder + fileName;
         var parent = items[folder];
 
+        log.debug(folder)
+        log.debug(fileName)
+
         var item = new QTreeWidgetItem(parent, [fileName], 2048);
-        if (files[i].type == "tree") item.setIcon(0, new QIcon(folderIcon));
+        if (isFolder) item.setIcon(0, new QIcon(folderIcon));
         item.setData(0, Qt.UserRole, filePath);
         item.setExpanded(true);
         items[filePath] = item;
@@ -795,14 +807,14 @@ function initStoreUI() {
       var saveDestination = QFileDialog.getSaveFileName(0, "Save Package", System.getenv("userprofile"), "tbpackage.json");
       seller.package.website = authorBox.websiteField.text;
       seller.package.social = authorBox.socialField.text;
-      if (!saveDestination) return; 
+      if (!saveDestination) return;
       seller.exportPackage(saveDestination);
 
       var message = '<html><head /><body>'
       message += '<p>Export succesful.</p><p>Upload the file: '
-      message += '<a href="'+saveDestination.slice(0, saveDestination.lastIndexOf("/"))+'"><span style=" text-decoration: underline; color:#55aaff;">'+saveDestination+'</span></a>'
+      message += '<a href="' + saveDestination.slice(0, saveDestination.lastIndexOf("/")) + '"><span style=" text-decoration: underline; color:#55aaff;">' + saveDestination + '</span></a>'
       message += ' to the root of the repository: '
-      message += '<a href="'+packageBox.packageUrl.text+'"><span style=" text-decoration: underline; color:#55aaff;">'+packageBox.packageUrl.text+'</span></a>'
+      message += '<a href="' + packageBox.packageUrl.text + '"><span style=" text-decoration: underline; color:#55aaff;">' + packageBox.packageUrl.text + '</span></a>'
       message += ' to register your extensions.</p>'
       message += '<p>Make sure your repository is present in the list at this address:<br>'
       message += '<a href="https://github.com/mchaptel/TBScripts/blob/master/ExtensionStore/packages/ExtensionStore/SELLERSLIST"><span style=" text-decoration: underline; color:#55aaff;">https://github.com/mchaptel/TBScripts/blob/master/ExtensionStore/packages/ExtensionStore/SELLERSLIST</span></a></p>'

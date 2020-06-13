@@ -264,6 +264,8 @@ function initStoreUI() {
       storeDescriptionPanel.installButton.removeAction(updateAction);
       storeDescriptionPanel.installButton.setDefaultAction(installAction);
     }
+    storeDescriptionPanel.installButton.enabled = (extension.package.files.length > 0)
+
   }
 
   // update and display the description panel when selection changes
@@ -391,8 +393,9 @@ function initStoreUI() {
     authorBox.enabled = false;
     registerPanel.enabled = false;
 
-    // load existing package       
-    function loadPackage() {
+    // load existing package    
+    // CBB : Change this into a validator for first line edit   
+    function getRepoUrl() {
       log.debug("loading package");
       var packageUrl = packageBox.packageUrl.text;
       if (packageUrl.slice(-1) != "/") {
@@ -403,24 +406,29 @@ function initStoreUI() {
       var sellerUrl = sellerRe.exec(packageUrl);
       if (!sellerUrl) {
         MessageBox.information("Enter a valid github repository address.");
-        return;
+        packageBox.packageUrl.text = "";
+        return null;
       }
 
       // seller created then stored in the above scope
-      seller = new Seller(sellerUrl[0]);
+      return sellerUrl[0];
     }
 
     
     packageBox.loadPackageButton.clicked.connect(this, function () {
-      seller = {};
-      loadPackage();
+      var url = getRepoUrl();
+      if (!url) return
+
+      seller = new Seller(url);
       loadSeller(seller);
     })
 
 
     packageBox.loadPackageFromFileButton.clicked.connect(this, function () {
-      seller = {};
-      loadPackage();
+      var url = getRepoUrl();
+      if (!url) return
+
+      seller = new Seller(url);
       var packageFile = QFileDialog.getOpenFileName(0, "Open Package File", System.getenv("userprofile"), "tbpackage.json")
       if (!packageFile) return;
       seller.loadFromFile(packageFile);
@@ -429,9 +437,12 @@ function initStoreUI() {
 
 
     packageBox.newPackageButton.clicked.connect(this, function () {
-      seller = {};
-      loadPackage();
+      var url = getRepoUrl();
+      if (!url) return
+
+      seller = new Seller(url);
       seller.package = {}
+      seller.addExtension("my first extension")
       loadSeller(seller);
     })
 
@@ -445,10 +456,8 @@ function initStoreUI() {
         MessageBox.information("No tbpackage.json found in repository.")
         return;
       } 
-      var extensions = seller.extensions;
-      if (Object.keys(extensions).length == 0) seller.addExtension("");
 
-      log.debug("found extensions", Object.keys(extensions));
+      resetPanel();
 
       // update seller info
       authorBox.authorField.setText(seller.name);
@@ -458,21 +467,38 @@ function initStoreUI() {
       authorBox.enabled = true;
       registerPanel.enabled = true;
 
+      var extensions = seller.extensions;
+      log.debug("found extensions", Object.keys(extensions));
+
       // add extensions to the drop down
       for (var i in extensions) {
+        log.debug("adding extension "+extensions[i].name)
         list.addItem(extensions[i].name, extensions[i].id);
       }
       updatePackageInfo(0);
+    }
 
-      list["currentIndexChanged(int)"].connect(this, updatePackageInfo);
+    function resetPanel(){
+      updating = true
+      authorBox.authorField.setText("");
+      authorBox.websiteField.setText("");
+      authorBox.socialField.setText("");
 
-      // save package when finishing editing any widget
-      registerPanel.versionField.editingFinished.connect(this, savePackageInfo);
-      registerPanel.compatibilityComboBox["currentIndexChanged(int)"].connect(this, savePackageInfo);
-      registerDescription.focusOutEvent = savePackageInfo;
-      registerPanel.isPackageCheckBox.stateChanged.connect(this, savePackageInfo);
-      registerPanel.keywordsPanel.keywordsField.editingFinished.connect(this, savePackageInfo);
-      registerPanel.repoField.editingFinished.connect(this, savePackageInfo);
+      // in case of reloading, first delete all existing items in drop down
+      while (list.count){
+        list.removeItem(0);
+      }
+
+      registerPanel.versionField.setText("");
+      registerPanel.compatibilityComboBox.setCurrentIndex(0);
+      registerDescription.setPlainText("");
+      registerPanel.isPackageCheckBox.checked = false;
+      registerPanel.keywordsPanel.keywordsField.setText("");
+      registerPanel.repoField.setText("");
+      registerPanel.filesField.setText("");
+      registerPanel.licenseType.setText("")
+
+      updating = false
     }
 
 
@@ -482,18 +508,16 @@ function initStoreUI() {
      * @param {int} index    the index of the selected item in the QComboBox to use to update
      */
     function updatePackageInfo(index) {
+      if (updating) return;
       updating = true;  // tell other functions you're updating
+      if (list.count == 0) return
       var extensionId = list.itemData(index, Qt.UserRole);
-      if (extensionId == undefined) {
-        var extension = seller.addExtension(list.currentText);
-        list.setItemData(index, extension.id, Qt.UserRole);
-      } else {
-        var extension = seller.extensions[extensionId];
-      }
+      var extension = seller.extensions[extensionId];
 
       log.debug("displaying extension:", extensionId);
       log.debug(JSON.stringify(extension.package, null, " "));
 
+      authorBox.authorField.setText(extension.package.author);
       registerPanel.versionField.setText(extension.package.version);
       var compatIndex = registerPanel.compatibilityComboBox.findText(extension.package.compatibility);
       registerPanel.compatibilityComboBox.setCurrentIndex(compatIndex);
@@ -502,10 +526,11 @@ function initStoreUI() {
       registerPanel.keywordsPanel.keywordsField.setText(extension.package.keywords.join(", "));
       registerPanel.repoField.setText(extension.package.repository);
       registerPanel.filesField.setText(extension.package.files.join(", "));
+      registerPanel.licenseType.setText(extension.package.license)
       updating = false;
     }
 
-
+    list["currentIndexChanged(int)"].connect(this, updatePackageInfo);
     /**
      * gather all the info from the form and save into the extension package
      */
@@ -515,13 +540,16 @@ function initStoreUI() {
       var extension = seller.extensions[extensionId];
 
       var extensionPackage = {};
+      
       extensionPackage.name = list.currentText;
+      extensionPackage.author = authorBox.authorField.text;
       extensionPackage.version = registerPanel.versionField.text;
       extensionPackage.compatibility = registerPanel.compatibilityComboBox.currentText;
       extensionPackage.description = registerDescription.document().toPlainText();
       extensionPackage.isPackage = registerPanel.isPackageCheckBox.checked;
       extensionPackage.keywords = registerPanel.keywordsPanel.keywordsField.text.replace(/ /g, "").split(",");
       extensionPackage.repository = registerPanel.repoField.text;
+      extensionPackage.license  = registerPanel.licenseType.text;
       extensionPackage.files = registerPanel.filesField.text.replace(/(, | ,)/g, ",").split(",");
 
       log.debug("saving package:");
@@ -529,7 +557,19 @@ function initStoreUI() {
       extension.package = extensionPackage;
     }
 
+    registerPanel.versionField.editingFinished.connect(this, savePackageInfo);
+    registerPanel.licenseType.editingFinished.connect(this, savePackageInfo);
+    registerPanel.compatibilityComboBox["currentIndexChanged(int)"].connect(this, savePackageInfo);
+    registerDescription.focusOutEvent = savePackageInfo;
+    registerPanel.isPackageCheckBox.stateChanged.connect(this, savePackageInfo);
+    registerPanel.keywordsPanel.keywordsField.editingFinished.connect(this, savePackageInfo);
+    registerPanel.repoField.editingFinished.connect(this, savePackageInfo);
+
     // Extension functions ------------------------------------------
+    /**
+     * @Slot
+     * adds a new extension to the seller
+     */
     function addExtension() {
       var newName = Input.getText("Enter new extension name:", "", "Prompt");
       if (!newName) return;
@@ -538,6 +578,11 @@ function initStoreUI() {
       list.setCurrentIndex(list.findText(newName));
     }
 
+
+    /**
+     * @Slot
+     * removes the extension described by the currently active item of the ComboBox
+     */
     function removeExtension() {
       var extensionId = list.itemData(list.currentIndex, Qt.UserRole);
       var name = seller.extensions[extensionId].name;
@@ -546,20 +591,28 @@ function initStoreUI() {
     }
 
 
-    list["activated(QString)"].connect(this, function(text){
+    /**
+     * @Slot
+     * Rename the extension when activating the comboBox with a field that isn't part of the existing values
+     */
+    function renameExtension(){
+      if (list.count == 0) return
+      var newName = Input.getText("Rename extension:", list.currentText, "Prompt");
+      if (!newName) return;
+      log.debug("renaming to "+newName)
+
       var extensionId = list.itemData(list.currentIndex, Qt.UserRole);
-      if (list.findText(text) == -1){
-        var extensionId = list.itemData(list.currentIndex, Qt.UserRole);
-        var name = list.currentText;
-        list.setItemText(list.currentIndex, name)
-        seller.renameExtension(extensionId, name);
-        savePackageInfo();
-      }
-    })
+      var extension = seller.extensions[extensionId];
+
+      seller.renameExtension(extensionId, newName);
+      list.setItemText(list.currentIndex, newName);
+      list.setItemData(list.currentIndex, extension.id, Qt.UserRole);
+    }
 
     registerPanel.addExtensionButton.clicked.connect(this, addExtension);
     registerPanel.removeExtensionButton.clicked.connect(this, removeExtension);
-    
+    registerPanel.renameExtensionButton.clicked.connect(this, renameExtension);
+
     // Pick Files From Repository -----------------------------------
     /**
      * brings up a dialog to select the files to include in the extension from a repository
@@ -722,6 +775,7 @@ function initStoreUI() {
         }
         registerPanel.filesField.text = includedFiles.join(",");
         pickerUi.close();
+        savePackageInfo();
       })
 
       // cancel dialog
@@ -743,7 +797,18 @@ function initStoreUI() {
       seller.package.social = authorBox.socialField.text;
       if (!saveDestination) return; 
       seller.exportPackage(saveDestination);
-      MessageBox.information("Export succesful. Upload the file\n"+saveDestination+"\nto the root of the repository\n"+packageBox.packageUrl.text+"\nto register your extensions.\n\nMake sure your repository is present in the list at this address :\nhttps://github.com/mchaptel/TBScripts/blob/master/ExtensionStore/packages/ExtensionStore/SELLERSLIST")
+
+      var message = '<html><head /><body>'
+      message += '<p>Export succesful.</p><p>Upload the file: '
+      message += '<a href="'+saveDestination.slice(0, saveDestination.lastIndexOf("/"))+'"><span style=" text-decoration: underline; color:#55aaff;">'+saveDestination+'</span></a>'
+      message += ' to the root of the repository: '
+      message += '<a href="'+packageBox.packageUrl.text+'"><span style=" text-decoration: underline; color:#55aaff;">'+packageBox.packageUrl.text+'</span></a>'
+      message += ' to register your extensions.</p>'
+      message += '<p>Make sure your repository is present in the list at this address:<br>'
+      message += '<a href="https://github.com/mchaptel/TBScripts/blob/master/ExtensionStore/packages/ExtensionStore/SELLERSLIST"><span style=" text-decoration: underline; color:#55aaff;">https://github.com/mchaptel/TBScripts/blob/master/ExtensionStore/packages/ExtensionStore/SELLERSLIST</span></a></p>'
+      message += "</body></html>"
+
+      MessageBox.information(message)
     })
 
     form.show();

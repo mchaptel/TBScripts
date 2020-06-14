@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>758</width>
-    <height>679</height>
+    <width>621</width>
+    <height>675</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -430,46 +430,36 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_8">
-        <property name="spacing">
-         <number>6</number>
+       <widget class="QCheckBox" name="isPackageCheckBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-        <property name="sizeConstraint">
-         <enum>QLayout::SetMaximumSize</enum>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Packages are stored in the &amp;quot;/package&amp;quot; folder and contain a configure.js file &lt;/p&gt;&lt;p&gt;that can define windows, shortcuts and menu items in the Harmony User Interface. &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Select this option if the files have to be installed in the &amp;quot;/package&amp;quot; folder.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
-        <item>
-         <widget class="QLabel" name="descriptionLabel">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Description :</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="isPackageCheckBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Packages are stored in the &amp;quot;/package&amp;quot; folder and contain a configure.js file &lt;/p&gt;&lt;p&gt;that can define windows, shortcuts and menu items in the Harmony User Interface. &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Select this option if the files have to be installed in the &amp;quot;/package&amp;quot; folder.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-          </property>
-          <property name="layoutDirection">
-           <enum>Qt::RightToLeft</enum>
-          </property>
-          <property name="text">
-           <string>This extension is a Harmony package.</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>This extension is a Harmony package.</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="descriptionLabel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Description :</string>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QSplitter" name="descriptionSplitter">
@@ -552,10 +542,10 @@ p, li { white-space: pre-wrap; }
          <item>
           <widget class="QLineEdit" name="keywordsField">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Those keywords will help users discover your script in the Store.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Those keywords will help users discover your script in the Store. Specify as many as needed, separated by a comma.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="placeholderText">
-            <string>Enter Keywords to help users find your extension.</string>
+            <string>Enter Keywords to help users find your extension. Ex: package, tool, openHarmony</string>
            </property>
           </widget>
          </item>

@@ -1197,6 +1197,9 @@ NetworkConnexionHandler.prototype.get = function (command) {
  * Makes a download request for the given file url, and downloads it to the chosen location
  */
 NetworkConnexionHandler.prototype.download = function (url, destinationPath) {
+  url = url.replace(/ /, "%20")
+  destinationPath = destinationPath.replace(/ /, "%20")
+  
   var command = ["-L", "-o", destinationPath, url];
   var result = this.curl.get(command, 30000); // 30s timeout
   return result

@@ -16,7 +16,6 @@
 
 
 MessageLog.trace("Succesfully loaded Extension Store Package.");
-MessageLog.clearLog();
 
 function configure(packageFolder, packageName) {
   ScriptManager.addView({
@@ -566,7 +565,7 @@ function initStoreUI() {
       log.debug("displaying extension:", extensionId);
       log.debug(JSON.stringify(extension.package, null, " "));
 
-      authorBox.authorField.setText(extension.package.author);
+      authorBox.authorField.setText(seller.name);
       registerPanel.versionField.setText(extension.package.version);
       var compatIndex = registerPanel.compatibilityComboBox.findText(extension.package.compatibility);
       registerPanel.compatibilityComboBox.setCurrentIndex(compatIndex);

@@ -146,10 +146,14 @@ function initStoreUI() {
 
   // Subclass TreeWidgetItem 
   function ExtensionItem(extension) {
-    QTreeWidgetItem.call(this, [extension.name + " v" + extension.version, ""], 1024);
-    // store the extension id in the item
-    this.setData(0, Qt.UserRole, extension.id);
+    var newExtensions = localList.getData("newExtensions", []);
+    var extensionLabel = extension.name + " v" + extension.version;
+    log.debug(newExtensions)
+    log.debug("is extension", extension.id, "new ?", newExtensions.indexOf(extension.id) != -1)
 
+    if (newExtensions.indexOf(extension.id) != -1) extensionLabel += " ★new!"
+
+    QTreeWidgetItem.call(this, [extensionLabel, icon], 1024);
     // add an icon in the middle column showing if installed and if update present
     if (localList.isInstalled(extension)) {
       var icon = "✓";
@@ -167,6 +171,9 @@ function initStoreUI() {
       var icon = "✗";
     }
     this.setText(1, icon);
+
+    // store the extension id in the item
+    this.setData(0, Qt.UserRole, extension.id);
   }
   ExtensionItem.prototype = Object.create(QTreeWidgetItem.prototype);
 
@@ -178,6 +185,7 @@ function initStoreUI() {
     var filter = storeFrame.searchStore.text;
     var sellers = store.sellers;
 
+    // save selection 
     if (extensionsList.selectedItems().length > 0) {
       var currentSelectionId = extensionsList.selectedItems()[0].data(0, Qt.UserRole);
     }
@@ -215,6 +223,24 @@ function initStoreUI() {
   aboutFrame.loadStoreButton.clicked.connect(this, function () {
     storeFrame.show();
     aboutFrame.hide();
+
+    // expensive loading operation, maybe we could show a progress bar here somehow 
+    // (instead of doing it one line, do it seller by seller then extension by extension and update progress?)
+    var extensions = store.extensions;
+
+    // saving the list of extensions so we can pinpoint the new ones at next startup and highlight them
+    var oldExtensions = localList.getData("extensions", [])
+    var newExtensions = localList.getData("newExtensions", [])
+    oldExtensions = oldExtensions.concat(newExtensions); // saving the new extensions from last time as old
+    newExtensions = [];
+
+    for (var i in extensions) {
+      if (oldExtensions.indexOf(extensions[i].id) == -1) newExtensions.push(extensions[i].id);
+    }
+    
+    localList.saveData("extensions", oldExtensions);
+    localList.saveData("newExtensions", newExtensions);
+
     updateStoreList();
   })
 
@@ -245,7 +271,7 @@ function initStoreUI() {
     storeDescriptionPanel.sourceButton.toolTip = extension.repository._url;
     storeDescriptionPanel.websiteButton.toolTip = extension.package.website;
 
-    // update install button to reflect wether or not the extension is already installed
+    // update install button to reflect whether or not the extension is already installed
     if (localList.isInstalled(extension)) {
       var localExtension = localList.extensions[extension.id];
       if (!localExtension.currentVersionIsOlder(extension.version) && localList.checkFiles(extension)) {
@@ -339,7 +365,6 @@ function initStoreUI() {
     var extension = store.extensions[id];
 
     log.log("uninstalling extension : " + extension.repository.name + extension.name);
-    // log(JSON.stringify(extension.package, null, "  "))
     try {
       localList.uninstall(extension);
       MessageBox.information("Extension " + extension.name + " v" + extension.version + "\nwas uninstalled succesfully.");
@@ -396,6 +421,11 @@ function initStoreUI() {
     authorBox.enabled = false;
     registerPanel.enabled = false;
 
+    // complete url textfield if previously entered
+    var repoUrl = localList.getData("recentGithubUrl", "");
+    log.debug(repoUrl)
+    if (repoUrl) packageBox.packageUrl.setText(repoUrl);
+
     // load existing package    
     // CBB : Change this into a validator for first line edit   
     function getRepoUrl() {
@@ -414,10 +444,16 @@ function initStoreUI() {
       }
 
       // seller created then stored in the above scope
-      return sellerUrl[0];
+      var repoUrl = sellerUrl[0];
+      localList.saveData("recentGithubUrl", repoUrl);
+      return repoUrl;
     }
 
 
+    /**
+     * @Slot
+     * loading a tbpackage from the repository url
+     */
     packageBox.loadPackageButton.clicked.connect(this, function () {
       var url = getRepoUrl();
       if (!url) return
@@ -426,7 +462,11 @@ function initStoreUI() {
       loadSeller(seller);
     })
 
-
+    
+    /**
+     * @Slot
+     * loading a tbpackage from a local json file
+     */
     packageBox.loadPackageFromFileButton.clicked.connect(this, function () {
       var url = getRepoUrl();
       if (!url) return
@@ -439,6 +479,10 @@ function initStoreUI() {
     })
 
 
+    /**
+     * @Slot
+     * creates a new empty package.
+     */
     packageBox.newPackageButton.clicked.connect(this, function () {
       var url = getRepoUrl();
       if (!url) return
@@ -481,6 +525,8 @@ function initStoreUI() {
       updatePackageInfo(0);
     }
 
+
+    // Clears all values from the register panel
     function resetPanel() {
       updating = true
       authorBox.authorField.setText("");
@@ -548,12 +594,18 @@ function initStoreUI() {
       extensionPackage.author = authorBox.authorField.text;
       extensionPackage.version = registerPanel.versionField.text;
       extensionPackage.compatibility = registerPanel.compatibilityComboBox.currentText;
-      extensionPackage.description = registerDescription.document().toHtml();
       extensionPackage.isPackage = registerPanel.isPackageCheckBox.checked;
       extensionPackage.keywords = registerPanel.keywordsPanel.keywordsField.text.replace(/ /g, "").split(",");
       extensionPackage.repository = registerPanel.repoField.text;
       extensionPackage.license = registerPanel.licenseType.text;
       extensionPackage.files = registerPanel.filesField.text.replace(/(, | ,)/g, ",").split(",");
+
+      // var contentRe = /<body.*?>.*?<p.*?>(.*)<\/p><\/body>/i
+      // var descriptionHtml = registerDescription.document().toHtml();
+      // var match = descriptionHtml.match(contentRe)
+      // var description = match?description[1]:""
+      // extensionPackage.description = description;
+      extensionPackage.description = registerDescription.document().toPlainText();
 
       log.debug("saving package:");
       log.debug(JSON.stringify(extensionPackage, null, " "));
@@ -804,15 +856,21 @@ function initStoreUI() {
 
     // Generate Package ---------------------------------------
     form.generateButton.clicked.connect(this, function () {
-      var saveDestination = QFileDialog.getSaveFileName(0, "Save Package", System.getenv("userprofile"), "tbpackage.json");
+      form.generateButton.setFocus(); // set the focus to force the description panel to save.
+      var saveFolder = localList.getData("packageLastSaved", System.getenv("userprofile")); // start from folder chosen last time
+      var saveDestination = QFileDialog.getSaveFileName(0, "Save Package", saveFolder, "tbpackage.json");
+      seller.package.name = authorBox.websiteField.text;
       seller.package.website = authorBox.websiteField.text;
       seller.package.social = authorBox.socialField.text;
       if (!saveDestination) return;
+
+      var saveFolder = saveDestination.slice(0, saveDestination.lastIndexOf("/"))
+      localList.saveData("packageLastSaved", saveFolder) // save chosen folder for next time
       seller.exportPackage(saveDestination);
 
       var message = '<html><head /><body>'
       message += '<p>Export succesful.</p><p>Upload the file: '
-      message += '<a href="' + saveDestination.slice(0, saveDestination.lastIndexOf("/")) + '"><span style=" text-decoration: underline; color:#55aaff;">' + saveDestination + '</span></a>'
+      message += '<a href="' + saveFolder + '"><span style=" text-decoration: underline; color:#55aaff;">' + saveDestination + '</span></a>'
       message += ' to the root of the repository: '
       message += '<a href="' + packageBox.packageUrl.text + '"><span style=" text-decoration: underline; color:#55aaff;">' + packageBox.packageUrl.text + '</span></a>'
       message += ' to register your extensions.</p>'

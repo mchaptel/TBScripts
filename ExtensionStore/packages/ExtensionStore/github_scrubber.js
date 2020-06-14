@@ -85,6 +85,7 @@ Object.defineProperty(Store.prototype, "extensions", {
   get: function () {
     if (typeof this._extensions === 'undefined') {
       this.log.debug("getting the list of  available extensions.")
+
       var repos = this.repositories;
       var extensions = [];
       this._extensions = {};
@@ -723,10 +724,13 @@ Object.defineProperty(Extension.prototype, "files", {
  */
 Object.defineProperty(Extension.prototype, "id", {
   get: function () {
-    var repoName = this.package.repository.replace("https://github.com/", "")
-    var id = (repoName + this.name).replace(/ /g, "_")
+    if (typeof this._id === 'undefined'){
+      var repoName = this.package.repository.replace("https://github.com/", "")
+      var id = (repoName + this.name).replace(/ /g, "_")
+      this._id = id;
+    }
 
-    return id;
+    return this._id;
   }
 })
 
@@ -806,6 +810,7 @@ function LocalExtensionList(store) {
   this.log = new Logger("LocalExtensionList")
   this._installFolder = specialFolders.userScripts;             // default install folder, can be modified with installFolder property
   this._listFile = specialFolders.userConfig + "/.extensionsList";
+  this._ini = specialFolders.userConfig + "/.extensionStorePrefs"
   // if (this.list.length == 0) this.createListFile(store);              // initialize the list file that contains the extensions (!heavy! CBB: do it at a different time?)
 }
 
@@ -1050,6 +1055,53 @@ LocalExtensionList.prototype.createListFile = function (store) {
   }
   this.refreshExtensions();  // reload the new list and updates the extensions list
   return this.list;
+}
+
+/**
+ * Access the custom settings
+ */
+Object.defineProperty(LocalExtensionList.prototype, "settings", {
+  get: function(){
+    if (typeof this._settings === 'undefined'){
+      var ini = readFile(this._ini)
+      if (!ini){
+        var prefs = {};
+      }else{
+        var prefs = JSON.parse(ini);
+      }
+      this._settings = prefs;
+    }
+    return this._settings;
+  },
+  set: function(settingsObject){
+    writeFile(this._ini, JSON.stringify(settingsObject, null, "  "))
+  }
+})
+
+/**
+ * Saves the specified data to a local file.
+ * @param {string} name 
+ * @param {string} value 
+ */
+LocalExtensionList.prototype.saveData = function(name, value){
+  this.log.debug("saving data ", JSON.stringify(value, null, "  "), "under name", name)
+  var prefs = this.settings;
+  prefs[name] = value;
+  this.settings = prefs;
+}
+
+
+/**
+ * Loads data saved from a previous session.
+ * @param {string} name           The key to retrieve the local data
+ * @param {string} defaultValue   The default value in case the local data doesn't exist
+ */
+LocalExtensionList.prototype.getData = function(name, defaultValue){
+  if (typeof defaultValue === 'undefined') defaultValue = "";
+  this.log.debug("getting data", name, "defaultvalue:", (typeof defaultValue))
+  var prefs = this.settings;
+  if (typeof prefs[name] === 'undefined') return defaultValue;
+  return prefs[name];
 }
 
 

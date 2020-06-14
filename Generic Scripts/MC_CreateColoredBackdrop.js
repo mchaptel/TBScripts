@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 //
-//           Script MC_linkNodes.js v1.0.0
+//           Script MC_createColoredBackdrop.js v1.0.0
 //
 //     This script allows user to create a backdrop of any color.
 //     Select nodes to create the backdrop around the selection.

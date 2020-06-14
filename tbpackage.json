@@ -1,26 +1,104 @@
 {
-  "name" : "Mathieu C",
-  "website" : "https://github.com/mchaptel/TBScripts/",
-  "social" : "",
-  "repository" : "https://github.com/mchaptel/TBScripts/",
-  "extensions": [
-    {
-      "name": "ScriptsShortcuts",
-      "version": "0.1.0",
-      "compatibility": "Harmony Premium 16",
-      "description": "This script allows users to add shortcuts to the scripts they have installed",
-      "isPackage": "true",
-      "repository": "https://github.com/mchaptel/TBScripts/",
-      "files": [
-        "ScriptsShortcuts/packages/ScriptsShortcuts/"
-      ],
-      "keywords": [
-        "shortcuts",
-        "package"
-      ],
-      "author": "Mathieu Chaptel",
-      "license": "MPL-2.0",
-      "website": "https://github.com/mchaptel/TBScripts/"
-    }
-  ]
+ "name": "Mathieu C",
+ "website": "https://github.com/mchaptel/TBScripts/",
+ "social": "",
+ "repository": "https://github.com/mchaptel/TBScripts/",
+ "extensions": [
+  {
+   "name": "ScriptsShortcuts",
+   "version": "0.1.0",
+   "compatibility": "Harmony Premium 16",
+   "description": "This script allows users to add shortcuts to the scripts they have installed",
+   "repository": "https://github.com/mchaptel/TBScripts/",
+   "isPackage": "true",
+   "files": [
+    "ScriptsShortcuts/packages/ScriptsShortcuts/"
+   ],
+   "keywords": [
+    "shortcuts",
+    "package"
+   ],
+   "author": "Mathieu Chaptel",
+   "license": "MPL-2.0",
+   "website": "https://github.com/mchaptel/TBScripts/",
+   "localFiles": ""
+  },
+  {
+   "name": "ConnectAllSelNodes",
+   "version": "1.0.1",
+   "compatibility": "Harmony Premium 14",
+   "description": "<p>This script lets users connect all selected nodes to the composite of their choice.</p>\nTo launch this script, no need to select the composite in the node view, it will be chosen with a prompt. Add the \"MC_ConnectButton\" function to your scripting toolbar to use.\n<p>Keeping \"Alt\" down while clicking the button will disconnect the nodes.</p>\n<p>Set shortcuts to the connect/Disconnect functions with the extension <b>ScriptShortcuts</b> for easier use.</p>",
+   "repository": "https://github.com/mchaptel/TBScripts/",
+   "isPackage": false,
+   "files": [
+    "Generic Scripts/MC_ConnectAllSelNodes.js"
+   ],
+   "keywords": [
+    "shortcuts",
+    "nodeview"
+   ],
+   "author": "Mathieu C",
+   "license": "MPL-v2.0",
+   "website": "https://github.com/mchaptel/TBScripts/",
+   "localFiles": ""
+  },
+  {
+   "name": "Keyframe Jumper",
+   "version": "1.0.1",
+   "compatibility": "Harmony Premium 16",
+   "description": "<p>This script contains two functions : PreviousDrawing and NextDrawing. </p>\n\n<p>Set them to shortcuts with the extension <b>ScriptShortcuts</b> to be able to flip through drawing exposures, even if the number of the drawing is the same in the XSheet (unlike with the normal shortcuts!)</p>\n<p>In the future, this extension will also use one same buttons to go from keyframe to keyframe on peg layers depending on the selection. Stay tuned!</p>",
+   "repository": "https://github.com/mchaptel/TBScripts/",
+   "isPackage": false,
+   "files": [
+    "Generic Scripts/MC_KeyFrameJumper.js"
+   ],
+   "keywords": [
+    "shortcuts",
+    "animation"
+   ],
+   "author": "Mathieu C",
+   "license": "MPL-v2.0",
+   "website": "https://github.com/mchaptel/TBScripts/",
+   "localFiles": ""
+  },
+  {
+   "name": "Create Colored Backdrops",
+   "version": "1.0.0",
+   "compatibility": "Harmony Premium 16",
+   "description": "Simple Script to create a backdrop of any color possible.<p>This script uses the scripting library <b>openHarmony</b> and will not work if it's not installed. Install it from the store for this to work.</p>\n<p>Use the extension <b>ScriptShortcuts</b> to set a shortcut to this function or add it to your scripting toolbar.</p>",
+   "repository": "https://github.com/mchaptel/TBScripts/",
+   "isPackage": false,
+   "files": [
+    "Generic Scripts/MC_CreateColoredBackdrop.js"
+   ],
+   "keywords": [
+    "nodeview",
+    "openHarmony",
+    "backdrop"
+   ],
+   "author": "Mathieu C",
+   "license": "MPL v2.0",
+   "website": "https://github.com/mchaptel/TBScripts/",
+   "localFiles": ""
+  },
+  {
+   "name": "link Nodes",
+   "version": "1.0.0",
+   "compatibility": "Harmony Premium 16",
+   "description": "Simple script to set to a shortcut and easily connect to selected nodes with a single keystroke. No more dragging the line across multiple screens!\n<p>The node that's the highest will be connected into the node that's further down. <br>Keep the <i>\"Shift\"</i> key down to reverse the order.\n</p>\n\n<p>Use the extension <b>ScriptShortcuts</b> to easily set a shortcut to this function or add it to your scripting toolbar.</p>",
+   "repository": "https://github.com/mchaptel/TBScripts/",
+   "isPackage": false,
+   "files": [
+    "Generic Scripts/MC_linkNodes.js"
+   ],
+   "keywords": [
+    "nodeview",
+    "shortcuts"
+   ],
+   "author": "Mathieu C",
+   "license": "MPL v2.0",
+   "website": "https://github.com/mchaptel/TBScripts/",
+   "localFiles": ""
+  }
+ ]
 }

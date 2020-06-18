@@ -282,9 +282,6 @@ function initStoreUI() {
         storeDescriptionPanel.installButton.removeAction(installAction);
         storeDescriptionPanel.installButton.removeAction(uninstallAction);
         storeDescriptionPanel.installButton.setDefaultAction(updateAction);
-        
-        this.setToolTip(1, "Some files from this extension are missing.");
-        this.setText(1, "!");
       }
     } else {
       // installAction.setText("Install")

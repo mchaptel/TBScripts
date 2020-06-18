@@ -1,6 +1,6 @@
 {
   "name": "ExtensionStore",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "compatibility": "Harmony Premium 16",
   "description": "Changelog: bufixes for registration. Store can now display which extensions are new.",
   "isPackage": "true",

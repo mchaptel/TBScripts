@@ -147,9 +147,7 @@ function initStoreUI() {
   function ExtensionItem(extension) {
     var newExtensions = localList.getData("newExtensions", []);
     var extensionLabel = extension.name + " v" + extension.version;
-    log.debug(newExtensions)
-    log.debug("is extension", extension.id, "new ?", newExtensions.indexOf(extension.id) != -1)
-
+    
     if (newExtensions.indexOf(extension.id) != -1) extensionLabel += " ★new!"
 
     QTreeWidgetItem.call(this, [extensionLabel, icon], 1024);
@@ -338,7 +336,7 @@ function initStoreUI() {
       MessageBox.information("Extension " + extension.name + " v" + extension.version + "\nwas installed correctly.");
     } catch (err) {
       log.error(err);
-      MessageBox.information("There was an error while installing extension\n" + extension.name + " v" + extension.version + ":\n\n" + err + " file: " + err.fileName + " line: " + err.lineNumber);
+      MessageBox.information("There was an error while installing extension\n" + extension.name + " v" + extension.version + ":\n\n" + err);
     }
     localList.refreshExtensions();
     updateStoreList();

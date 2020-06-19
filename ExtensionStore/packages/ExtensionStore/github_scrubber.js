@@ -1115,7 +1115,7 @@ function ExtensionDownloader(extension) {
   this.log.level = this.log.LEVEL.LOG;
   this.repository = extension.repository;
   this.extension = extension;
-  this.destFolder = specialFolders.temp + "/" + extension.name + "_" + extension.version;
+  this.destFolder = specialFolders.temp + "/" + extension.name.replace(/[ :\?]/g, "") + "_" + extension.version;
 }
 
 
@@ -1149,7 +1149,7 @@ ExtensionDownloader.prototype.downloadFiles = function () {
       this.log.debug("successfully downloaded " + files[i].path + " to location : " + destPaths[i])
       dlFiles.push(destPaths[i])
     } else {
-      throw new Error("Downloaded file " + destPaths[i] + " size does not match expected size : " + dlFile.size + " " + files[i].size)
+      throw new Error("Downloaded file " + destPaths[i] + " size does not match expected size : \n" + dlFile.size + " bytes (expected : " + files[i].size+" bytes)")
     }
   }
 
@@ -1197,8 +1197,8 @@ NetworkConnexionHandler.prototype.get = function (command) {
  * Makes a download request for the given file url, and downloads it to the chosen location
  */
 NetworkConnexionHandler.prototype.download = function (url, destinationPath) {
-  url = url.replace(/ /, "%20")
-  destinationPath = destinationPath
+  url = url.replace(/ /g, "%20")
+  destinationPath = destinationPath.replace(/[ :\?\*"\<\>\|][^/\\]/g, "")
   
   var command = ["-L", "-o", destinationPath, url];
   var result = this.curl.get(command, 30000); // 30s timeout
@@ -1271,7 +1271,7 @@ CURL.prototype.get = function (command, wait) {
     // The toonboom bundled curl doesn't seem to be equiped for ssh so we have to use unsafe mode
     if (bin.indexOf("ToonBoom") != -1) command = ["-k"].concat(command)
 
-    this.log.debug("starting process :" + bin + " " + command);
+    this.log.debug("starting process :" + bin + " " + command.join(" "));
     p.start(bin, command);
 
     p.waitForFinished(wait);

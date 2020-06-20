@@ -46,7 +46,7 @@ function initStoreUI() {
   var packageView = ScriptManager.getView("Extension Store");
   var ui = ScriptManager.loadViewUI(packageView, "./store.ui");
   ui.minimumWidth = UiLoader.dpiScale(350);
-  ui.minimumHeight = UiLoader.dpiScale(400);
+  ui.minimumHeight = UiLoader.dpiScale(200);
 
   log.debug("loading UI")
 
@@ -265,7 +265,7 @@ function initStoreUI() {
     descriptionText.setHtml(extension.package.description);
     storeDescriptionPanel.storeKeywordsGroup.storeKeywordsLabel.text = extension.package.keywords.join(", ");
     storeDescriptionPanel.authorStoreLabel.text = extension.package.author;
-    storeDescriptionPanel.sourceButton.toolTip = extension.repository._url;
+    storeDescriptionPanel.sourceButton.toolTip = extension.package.repository;
     storeDescriptionPanel.websiteButton.toolTip = extension.package.website;
 
     // update install button to reflect whether or not the extension is already installed
@@ -401,8 +401,29 @@ function initStoreUI() {
 
     registerPanel.descriptionSplitter.setSizes([registerPanel.descriptionSplitter.width, 0]);
 
+    // converts the line breaks and double line breaks to html so they appear properly
+    function htmlFromDescription(descriptionString){
+      log.debug("converting string to html")
+      var htmlString = "<p>"+descriptionString+"</p>";
+      htmlString = htmlString.replace(/\n\n/g, "</p><p>")
+                             .replace(/\n/g, "<br>");
+      return htmlString;
+    }
+
+    function descriptionStringFromHtml(html){
+      log.debug("converting html to string")
+      var descriptionString = html.replace(/\\n/g, "")
+                                  .replace(/\<\/p\>\<p\>/g, "\n\n")
+                                  .replace(/\<br\>/g, "\n")
+                                  .replace(/^\<p\>/g, "")
+                                  .replace(/\<\/p\>$/g, "");
+
+      log.debug(descriptionString);
+      return descriptionString;
+    }
+
     registerDescription.textChanged.connect(this, function () {
-      descriptionPreview.setHtml(registerDescription.document().toPlainText());
+      descriptionPreview.setHtml(htmlFromDescription(registerDescription.document().toPlainText()));
     })
 
     // Load Package ----------------------------------------------------
@@ -417,7 +438,7 @@ function initStoreUI() {
 
     // complete url textfield if previously entered
     var repoUrl = localList.getData("recentGithubUrl", "");
-    log.debug(repoUrl)
+    log.debug(repoUrl);
     if (repoUrl) packageBox.packageUrl.setText(repoUrl);
 
     // load existing package    
@@ -450,7 +471,7 @@ function initStoreUI() {
      */
     packageBox.loadPackageButton.clicked.connect(this, function () {
       var url = getRepoUrl();
-      if (!url) return
+      if (!url) return;
 
       seller = new Seller(url);
       loadSeller(seller);
@@ -463,7 +484,7 @@ function initStoreUI() {
      */
     packageBox.loadPackageFromFileButton.clicked.connect(this, function () {
       var url = getRepoUrl();
-      if (!url) return
+      if (!url) return;
 
       seller = new Seller(url);
       var packageFile = QFileDialog.getOpenFileName(0, "Open Package File", System.getenv("userprofile"), "tbpackage.json")
@@ -561,10 +582,11 @@ function initStoreUI() {
       log.debug(JSON.stringify(extension.package, null, " "));
 
       authorBox.authorField.setText(seller.name);
+      registerPanel.authorName.setText(extension.package.author);
       registerPanel.versionField.setText(extension.package.version);
       var compatIndex = registerPanel.compatibilityComboBox.findText(extension.package.compatibility);
       registerPanel.compatibilityComboBox.setCurrentIndex(compatIndex);
-      registerDescription.setPlainText(extension.package.description);
+      registerDescription.setPlainText(descriptionStringFromHtml(extension.package.description));
       registerPanel.isPackageCheckBox.checked = extension.package.isPackage;
       registerPanel.keywordsPanel.keywordsField.setText(extension.package.keywords.join(", "));
       registerPanel.repoField.setText(extension.package.repository);
@@ -585,7 +607,7 @@ function initStoreUI() {
       var extensionPackage = {};
 
       extensionPackage.name = list.currentText;
-      extensionPackage.author = authorBox.authorField.text;
+      extensionPackage.author = registerPanel.authorName.text;
       extensionPackage.version = registerPanel.versionField.text;
       extensionPackage.compatibility = registerPanel.compatibilityComboBox.currentText;
       extensionPackage.isPackage = registerPanel.isPackageCheckBox.checked;
@@ -593,13 +615,8 @@ function initStoreUI() {
       extensionPackage.repository = registerPanel.repoField.text;
       extensionPackage.license = registerPanel.licenseType.text;
       extensionPackage.files = registerPanel.filesField.text.replace(/(, | ,)/g, ",").split(",");
-
-      // var contentRe = /<body.*?>.*?<p.*?>(.*)<\/p><\/body>/i
-      // var descriptionHtml = registerDescription.document().toHtml();
-      // var match = descriptionHtml.match(contentRe)
-      // var description = match?description[1]:""
-      // extensionPackage.description = description;
-      extensionPackage.description = registerDescription.document().toPlainText();
+      extensionPackage.description = htmlFromDescription(registerDescription.document().toPlainText());
+      extensionPackage.website = authorBox.websiteField.text;
 
       log.debug("saving package:");
       log.debug(JSON.stringify(extensionPackage, null, " "));
@@ -620,6 +637,7 @@ function initStoreUI() {
      * adds a new extension to the seller
      */
     function addExtension() {
+      savePackageInfo()
       var newName = Input.getText("Enter new extension name:", "", "Prompt");
       if (!newName) return;
       var extension = seller.addExtension(newName);
@@ -645,6 +663,7 @@ function initStoreUI() {
      * Rename the extension when activating the comboBox with a field that isn't part of the existing values
      */
     function renameExtension() {
+      savePackageInfo()
       if (list.count == 0) return
       var newName = Input.getText("Rename extension:", list.currentText, "Prompt");
       if (!newName) return;
@@ -850,10 +869,11 @@ function initStoreUI() {
 
     // Generate Package ---------------------------------------
     form.generateButton.clicked.connect(this, function () {
-      form.generateButton.setFocus(); // set the focus to force the description panel to save.
+      savePackageInfo()
+
       var saveFolder = localList.getData("packageLastSaved", System.getenv("userprofile")); // start from folder chosen last time
       var saveDestination = QFileDialog.getSaveFileName(0, "Save Package", saveFolder, "tbpackage.json");
-      seller.package.name = authorBox.websiteField.text;
+      seller.package.name = authorBox.authorField.text;
       seller.package.website = authorBox.websiteField.text;
       seller.package.social = authorBox.socialField.text;
       if (!saveDestination) return;

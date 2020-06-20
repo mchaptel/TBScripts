@@ -1,6 +1,6 @@
 {
   "name": "ExtensionStore",
-  "version": "0.0.11",
+  "version": "0.1.0",
   "compatibility": "Harmony Premium 16",
   "description": "Changelog: Progress bar for downloading, bugfixes in registration window. \nWriting descriptions should now be easier, with line breaks being kept by the html.",
   "isPackage": "true",

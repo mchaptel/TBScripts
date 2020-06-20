@@ -780,8 +780,8 @@ Extension.prototype.matchesSearch = function (search) {
  * @param {string} version    a semantic version string separated by dots.
  */
 Extension.prototype.currentVersionIsOlder = function (version) {
-  version = version.split(".");
-  var ownVersion = this.version.split(".");
+  version = version.split(".").map(function(x){return parseInt(x, 10)});
+  var ownVersion = this.version.split(".").map(function(x){return parseInt(x, 10)});
 
   var length = Math.max(version.length > ownVersion.length);
 

@@ -700,7 +700,7 @@
              <number>0</number>
             </property>
             <property name="rightMargin">
-             <number>0</number>
+             <number>3</number>
             </property>
             <property name="bottomMargin">
              <number>0</number>
@@ -747,7 +747,7 @@
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>17</width>
+            <width>0</width>
             <height>37</height>
            </size>
           </property>

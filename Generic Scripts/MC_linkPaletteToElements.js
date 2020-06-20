@@ -33,6 +33,8 @@ function MC_linkPaletteToElements(){
   var doc = $.scn;
   var palette = doc.selectedPalette;
 
+  if (!palette) return;
+
   var selectedNodes = doc.getSelectedNodes(true).filter(function(x){return x.type == "READ"});
   for (var i in selectedNodes){
     if (KeyModifiers.IsShiftPressed()){

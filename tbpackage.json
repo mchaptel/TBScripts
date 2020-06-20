@@ -63,9 +63,9 @@
   },
   {
    "name": "Create Colored Backdrops",
-   "version": "1.0.0",
+   "version": "1.0.1",
    "compatibility": "Harmony Premium 16",
-   "description": "Simple Script to create a backdrop of any color possible.<p>This script uses the scripting library <b>openHarmony</b> and will not work if it's not installed. Install it from the store for this to work.</p>\n<p>Use the extension <b>ScriptShortcuts</b> to set a shortcut to this function or add it to your scripting toolbar.</p>",
+   "description": "Simple Script to create a backdrop of any color possible.<p>This script uses the scripting library <b>openHarmony</b> and will not work if it's not installed. Install it from the store for this to work.</p>\n<p>Use the extension <b>ScriptShortcuts</b> to set a shortcut to this function or add it to your scripting toolbar.</p><p> v1.0.1 : can now create backdrops inside any group.</p>",
    "repository": "https://github.com/mchaptel/TBScripts/",
    "isPackage": false,
    "files": [
@@ -102,9 +102,9 @@
   },
   {
    "name": "Link Palette To Selected Nodes",
-   "version": "1.0.0",
+   "version": "1.0.1",
    "compatibility": "Harmony Premium 16",
-   "description": "<p>This script links the selected palette to all selected nodes.<br>\nIf shift is pressed and the selected palette is an element palette, it will be unlinked from all elements.</p>\n<p>This script uses the scripting library <b>openHarmony</b> and will not work if it's not installed. Install it from the store for this to work.</p>\n<p>Use the extension <b>ScriptShortcuts</b> to set a shortcut to this function or add it to your scripting toolbar.</p>",
+   "description": "<p>This script links the selected palette to all selected nodes.<br>\nIf shift is pressed and the selected palette is an element palette, it will be unlinked from all elements.</p>\n<p>This script uses the scripting library <b>openHarmony</b> and will not work if it's not installed. Install it from the store for this to work.</p>\n<p>Use the extension <b>ScriptShortcuts</b> to set a shortcut to this function or add it to your scripting toolbar.</p><p>v1.0.1: Doesn't connect empty palette if no scene palette present. Requires openHarmony 0.2.8</p>",
    "repository": "https://github.com/mchaptel/TBScripts/",
    "isPackage": false,
    "files": [

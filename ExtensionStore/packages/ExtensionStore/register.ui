@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>621</width>
+    <width>729</width>
     <height>675</height>
    </rect>
   </property>
@@ -96,7 +96,7 @@
    <item>
     <widget class="QGroupBox" name="authorBox">
      <property name="title">
-      <string>Author</string>
+      <string>Store:</string>
      </property>
      <layout class="QFormLayout" name="formLayout_3">
       <property name="topMargin">
@@ -108,7 +108,7 @@
          <string>The extension maker name that will appear in the store.</string>
         </property>
         <property name="placeholderText">
-         <string>The extension maker name that will appear in the store.</string>
+         <string>The name that will appear in the store list.</string>
         </property>
        </widget>
       </item>
@@ -159,9 +159,6 @@
       <string>Extension</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
-      <property name="topMargin">
-       <number>6</number>
-      </property>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <property name="spacing">
@@ -400,6 +397,14 @@
           <property name="toolTip">
            <string>This specifies which versions of Harmony is required for the extension to work.</string>
           </property>
+          <property name="currentIndex">
+           <number>2</number>
+          </property>
+          <item>
+           <property name="text">
+            <string>Harmony Premium 20</string>
+           </property>
+          </item>
           <item>
            <property name="text">
             <string>Harmony Premium 17</string>
@@ -430,23 +435,54 @@
        </layout>
       </item>
       <item>
-       <widget class="QCheckBox" name="isPackageCheckBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Packages are stored in the &amp;quot;/package&amp;quot; folder and contain a configure.js file &lt;/p&gt;&lt;p&gt;that can define windows, shortcuts and menu items in the Harmony User Interface. &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Select this option if the files have to be installed in the &amp;quot;/package&amp;quot; folder.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="layoutDirection">
-         <enum>Qt::LeftToRight</enum>
-        </property>
-        <property name="text">
-         <string>This extension is a Harmony package.</string>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QCheckBox" name="isPackageCheckBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Packages are stored in the &amp;quot;/package&amp;quot; folder and contain a configure.js file &lt;/p&gt;&lt;p&gt;that can define windows, shortcuts and menu items in the Harmony User Interface. &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Select this option if the files have to be installed in the &amp;quot;/package&amp;quot; folder.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="text">
+           <string>This extension is a Harmony package.</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Author Name: </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="authorName">
+          <property name="placeholderText">
+           <string>The name of the script maker.</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
        <widget class="QLabel" name="descriptionLabel">
@@ -499,7 +535,7 @@ p, li { white-space: pre-wrap; }
           <bool>false</bool>
          </property>
          <property name="placeholderText">
-          <string>Enter a description for the extension here. &lt;p&gt;Supports html&lt;/p&gt;.</string>
+          <string>Enter a description for the extension here. &lt;b&gt;Supports html&lt;/b&gt;.</string>
          </property>
         </widget>
         <widget class="QFrame" name="htmlPanel">
@@ -574,6 +610,9 @@ p, li { white-space: pre-wrap; }
           </property>
           <property name="text">
            <string/>
+          </property>
+          <property name="placeholderText">
+           <string>The URL of the repository that hosts the files.</string>
           </property>
          </widget>
         </item>

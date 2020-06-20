@@ -1136,6 +1136,14 @@ ExtensionDownloader.prototype.downloadFiles = function () {
 
   this.log.debug("downloading files : "+files.map(function(x){return x.path}).join("\n"))
 
+  // cbb : how to connect this to any progress window?
+  var progress = new QProgressDialog();
+  progress.title = "Installing extension "+this.extension.name;
+  progress.setLabelText( "Downloading files..." );
+  progress.setRange( 0, files.length );
+
+  progress.show();
+
   for (var i = 0; i < files.length; i++) {
     // make the directory
     var dest = destPaths[i].split("/").slice(0, -1).join("/")
@@ -1148,10 +1156,13 @@ ExtensionDownloader.prototype.downloadFiles = function () {
       // download complete!
       this.log.debug("successfully downloaded " + files[i].path + " to location : " + destPaths[i])
       dlFiles.push(destPaths[i])
+      progress.value = i;
     } else {
       throw new Error("Downloaded file " + destPaths[i] + " size does not match expected size : \n" + dlFile.size + " bytes (expected : " + files[i].size+" bytes)")
     }
   }
+
+  progress.close();
 
   return dlFiles;
 }

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>567</width>
-    <height>810</height>
+    <width>521</width>
+    <height>683</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -94,7 +94,7 @@
            <string/>
           </property>
           <property name="placeholderText">
-           <string>Search...</string>
+           <string>Search by name or keyword...</string>
           </property>
          </widget>
         </item>
@@ -368,7 +368,20 @@
            </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="0,1">
+           <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="0,0,1">
+            <item>
+             <spacer name="horizontalSpacer_6">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
             <item>
              <widget class="QLabel" name="label_6">
               <property name="sizePolicy">
@@ -385,7 +398,7 @@
             <item>
              <widget class="QLineEdit" name="authorStoreLabel">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>1</verstretch>
                </sizepolicy>
@@ -401,7 +414,7 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0">
+           <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0">
             <item>
              <widget class="QToolButton" name="sourceButton">
               <property name="sizePolicy">
@@ -429,9 +442,22 @@
                <enum>Qt::ToolButtonTextBesideIcon</enum>
               </property>
               <property name="autoRaise">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
              </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_7">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
             </item>
             <item>
              <widget class="QToolButton" name="websiteButton">
@@ -460,7 +486,7 @@
                <enum>Qt::ToolButtonTextBesideIcon</enum>
               </property>
               <property name="autoRaise">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -606,7 +632,7 @@
          <number>25</number>
         </property>
         <property name="bottomMargin">
-         <number>25</number>
+         <number>9</number>
         </property>
         <item>
          <widget class="QLabel" name="label_11">
@@ -644,37 +670,80 @@
          </spacer>
         </item>
         <item>
-         <widget class="QLabel" name="label_3">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+         <widget class="QScrollArea" name="scrollArea">
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
           </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
+          <property name="frameShadow">
+           <enum>QFrame::Plain</enum>
           </property>
-          <property name="text">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This extension is made available for free by entusiast script makers and users and is not endorsed or curated by Toonboom. Use the extensions available for download on this store at your own risk.&lt;/p&gt;&lt;p&gt;The extensions available on this store are open source and sourced from checked github accounts. Make sure you read the source code and understand it before you install any extension.&lt;/p&gt;&lt;p&gt;If you have a question about a script, you can use the provided github or website address to contact the script author. We cannot offer support for extensions not working correctly.&lt;/p&gt;&lt;p&gt;If you want to register as a script creator and want to share your scripts through this extension, get in touch and we will add your github account to the list of content makers.&lt;/p&gt;&lt;p&gt;The source for this extension can be viewed here: &lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/mchaptel/TBScripts/tree/master/ExtensionStore/packages/ExtensionStore&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#55aaff;&quot;&gt;https://github.com/mchaptel/TBScripts&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/mchaptel/TBScripts/blob/master/ExtensionStore/packages/ExtensionStore/SELLERSLIST&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#55aaff;&quot;&gt;The list of extension makers is available here.&lt;/span&gt;&lt;/a&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-          </property>
-          <property name="textFormat">
-           <enum>Qt::AutoText</enum>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignJustify|Qt::AlignTop</set>
-          </property>
-          <property name="wordWrap">
+          <property name="widgetResizable">
            <bool>true</bool>
           </property>
-          <property name="openExternalLinks">
-           <bool>true</bool>
-          </property>
+          <widget class="QWidget" name="scrollAreaWidgetContents">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>452</width>
+             <height>254</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_7">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label_3">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="autoFillBackground">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This extension is made available for free by entusiast script makers and users and is not endorsed or curated by Toonboom. Use the extensions available for download on this store at your own risk.&lt;/p&gt;&lt;p&gt;The extensions available on this store are open source and sourced from checked github accounts. Make sure you read the source code and understand it before you install any extension.&lt;/p&gt;&lt;p&gt;If you have a question about a script, you can use the provided github or website address to contact the script author. We cannot offer support for extensions not working correctly.&lt;/p&gt;&lt;p&gt;If you want to register as a script creator and want to share your scripts through this extension, get in touch and we will add your github account to the list of content makers.&lt;/p&gt;&lt;p&gt;The source for this extension can be viewed here: &lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/mchaptel/TBScripts/tree/master/ExtensionStore/packages/ExtensionStore&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#55aaff;&quot;&gt;https://github.com/mchaptel/TBScripts&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/mchaptel/TBScripts/blob/master/ExtensionStore/packages/ExtensionStore/SELLERSLIST&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#55aaff;&quot;&gt;The list of extension makers is available here.&lt;/span&gt;&lt;/a&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="textFormat">
+               <enum>Qt::AutoText</enum>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignJustify|Qt::AlignTop</set>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+              <property name="openExternalLinks">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
          </widget>
         </item>
         <item>
          <spacer name="verticalSpacer_2">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Maximum</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -711,6 +780,9 @@
          <spacer name="verticalSpacer_3">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Maximum</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>

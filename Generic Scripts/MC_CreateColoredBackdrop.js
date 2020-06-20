@@ -33,7 +33,7 @@ function createColoredBackdrop() {
   if (!nodes) return 
   
   var color = pickColor(); 
-  var group = doc.root
+  var group = nodes[0].parent;
   var backdrop = group.addBackdropToNodes(nodes, "BackDrop", "", color)
   
   $.endUndo();

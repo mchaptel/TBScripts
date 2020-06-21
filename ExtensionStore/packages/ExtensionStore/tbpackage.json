@@ -1,12 +1,12 @@
 {
   "name": "ExtensionStore",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "compatibility": "Harmony Premium 16",
   "description": "Changelog: Progress bar for downloading, bugfixes in registration window. \nWriting descriptions should now be easier, with line breaks being kept by the html.",
   "isPackage": "true",
-  "repository": "https://github.com/mchaptel/TBScripts/",
+  "repository": "https://github.com/mchaptel/ExtensionStore/",
   "files": [
-    "ExtensionStore/packages/ExtensionStore/"
+    "packages/ExtensionStore/"
   ],
   "keywords": [
     "store",
@@ -14,5 +14,5 @@
   ],
   "author": "Mathieu Chaptel",
   "license": "MPL-2.0",
-  "website": "https://github.com/mchaptel/TBScripts/"
+  "website": "https://github.com/mchaptel/"
 }

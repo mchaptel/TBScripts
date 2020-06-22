@@ -73,7 +73,6 @@ function initStoreUI() {
   extensionsList.setColumnWidth(1, 30);
 
   // check for updates -----------------------------------------------
-  MessageBox.information('This version of the store is no longer supported. \nDownload it from <a href="https://github.com/mchaptel/ExtensionStore/"><span style=" text-decoration: underline; color:#55aaff;">https://github.com/mchaptel/ExtensionStore</span></a>\nand reinstall it to receive future updates.')
 
   if (localList.list.length > 0) {
     // we only do this if a local install List exists so as to not load the store until the user has clicked the button
@@ -114,7 +113,8 @@ function initStoreUI() {
       aboutFrame.updateRibbon.storeVersion.setText("v" + currentVersion + " ✓ - Store is up to date.");
     }
 
-    storeFrame.storeVersionLabel.setText("v" + currentVersion);
+    storeFrame.storeVersionLabel.setText("v" + currentVersion+'This version of the store is no longer supported. \nDownload it from <a href="https://github.com/mchaptel/ExtensionStore/"><span style=" text-decoration: underline; color:#55aaff;">https://github.com/mchaptel/ExtensionStore</span></a>\nand reinstall it to receive future updates.')
+    );
   } else {
     // in case of missing list file, we find out the current version by parsing the json ?
     var json = store.localPackage;

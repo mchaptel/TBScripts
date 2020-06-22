@@ -3,7 +3,7 @@
 //
 //           Script ExtensionStore/Configure.js v_1.01
 //
-//     Extension store that scrubs a list of github accounts 
+//     Extension store that scrubs a list of github accounts
 //     and allows easy installation/uninstallation/updates.
 //
 //     written by Mathieu Chaptel m.chaptel@gmail.com
@@ -34,7 +34,7 @@ function initStoreUI() {
   /////// testing
   /*var extensions = store.extensions
    log(extensions.map(function(x){return JSON.stringify(x.package, null, "  ")}));
- 
+
    for (var i in extensions){
      log("is extension "+extensions[i].name+" installed? "+localList.isInstalled(extensions[i]))
      //log(store.extensions[i].install());
@@ -75,9 +75,18 @@ function initStoreUI() {
   // check for updates -----------------------------------------------
 
   if (localList.list.length > 0) {
-    // we only do this if a local install List exists so as to not load the store until the user has clicked the button 
+    // we only do this if a local install List exists so as to not load the store until the user has clicked the button
     var storeExtension = store.storeExtension;
-    var installedStore = localList.extensions[storeExtension.id];
+
+    if (storeExtension.hasOwnProperty(storeExtension.id)){
+      var installedStore = localList.extensions[storeExtension.id];
+    }else{
+      // in case id changed (repo changed), we search by name
+      for (var i in localList.extensions){
+        if (localList.extensions[i].name == storeExtension.name) var installedStore = localList.extensions[i];
+      }
+    }
+
     var currentVersion = installedStore.version;
     var storeVersion = storeExtension.version;
 
@@ -143,11 +152,11 @@ function initStoreUI() {
 
   // load store button -----------------------------------------------
 
-  // Subclass TreeWidgetItem 
+  // Subclass TreeWidgetItem
   function ExtensionItem(extension) {
     var newExtensions = localList.getData("newExtensions", []);
     var extensionLabel = extension.name + " v" + extension.version;
-    
+
     if (newExtensions.indexOf(extension.id) != -1) extensionLabel += " ★new!"
 
     QTreeWidgetItem.call(this, [extensionLabel, icon], 1024);
@@ -182,7 +191,7 @@ function initStoreUI() {
     var filter = storeFrame.searchStore.text;
     var sellers = store.sellers;
 
-    // save selection 
+    // save selection
     if (extensionsList.selectedItems().length > 0) {
       var currentSelectionId = extensionsList.selectedItems()[0].data(0, Qt.UserRole);
     }
@@ -221,7 +230,7 @@ function initStoreUI() {
     storeFrame.show();
     aboutFrame.hide();
 
-    // expensive loading operation, maybe we could show a progress bar here somehow 
+    // expensive loading operation, maybe we could show a progress bar here somehow
     // (instead of doing it one line, do it seller by seller then extension by extension and update progress?)
     var extensions = store.extensions;
 
@@ -234,7 +243,7 @@ function initStoreUI() {
     for (var i in extensions) {
       if (oldExtensions.indexOf(extensions[i].id) == -1) newExtensions.push(extensions[i].id);
     }
-    
+
     localList.saveData("extensions", oldExtensions);
     localList.saveData("newExtensions", newExtensions);
 
@@ -441,8 +450,8 @@ function initStoreUI() {
     log.debug(repoUrl);
     if (repoUrl) packageBox.packageUrl.setText(repoUrl);
 
-    // load existing package    
-    // CBB : Change this into a validator for first line edit   
+    // load existing package
+    // CBB : Change this into a validator for first line edit
     function getRepoUrl() {
       log.debug("loading package");
       var packageUrl = packageBox.packageUrl.text;
@@ -477,7 +486,7 @@ function initStoreUI() {
       loadSeller(seller);
     })
 
-    
+
     /**
      * @Slot
      * loading a tbpackage from a local json file
@@ -511,7 +520,7 @@ function initStoreUI() {
 
     /**
      * load the info from the seller into the form
-     * @param {Seller} seller 
+     * @param {Seller} seller
      */
     function loadSeller(seller) {
       if (!seller.package) {
@@ -758,7 +767,7 @@ function initStoreUI() {
 
 
       /**
-       * highlight files with colors for included files and files that pass the filter when editing 
+       * highlight files with colors for included files and files that pass the filter when editing
        */
       function highlightFiles() {
         // remove all colors
@@ -803,8 +812,8 @@ function initStoreUI() {
 
       /**
        * colorise items based on regex
-       * @param {RegExp} search   items that pass the filter will be colored 
-       * @param {QBrush} color    a QBrush object that defines a background brush for QTreeWidgetItem 
+       * @param {RegExp} search   items that pass the filter will be colored
+       * @param {QBrush} color    a QBrush object that defines a background brush for QTreeWidgetItem
        */
       function colorizeFiles(search, color) {
         for (var i in items) {

@@ -4,9 +4,9 @@
   "compatibility": "Harmony Premium 16",
   "description": "Changelog: Progress bar for downloading, bugfixes in registration window. \nWriting descriptions should now be easier, with line breaks being kept by the html.",
   "isPackage": "true",
-  "repository": "https://github.com/mchaptel/ExtensionStore/",
+  "repository": "https://github.com/mchaptel/TBScripts/",
   "files": [
-    "packages/ExtensionStore/"
+    "ExtensionStore/packages/ExtensionStore/"
   ],
   "keywords": [
     "store",

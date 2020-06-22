@@ -74,6 +74,10 @@ function initStoreUI() {
 
   // check for updates -----------------------------------------------
 
+  aboutFrame.updateRibbon.storeVersion.textFormat = Qt.RichText;
+  storeFrame.storeVersionLabel.textFormat = Qt.RichText;
+  var deprecatedMessage = ' - This version of the store is no longer supported. <br>Download it from <a href="https://github.com/mchaptel/ExtensionStore/"><span style=" text-decoration: underline; color:#55aaff;">https://github.com/mchaptel/ExtensionStore</span></a><br>and reinstall it to receive future updates.'
+
   if (localList.list.length > 0) {
     // we only do this if a local install List exists so as to not load the store until the user has clicked the button
     var storeExtension = store.storeExtension;
@@ -110,18 +114,17 @@ function initStoreUI() {
       aboutFrame.updateRibbon.updateButton.clicked.connect(updateStore);
     } else {
       aboutFrame.updateRibbon.updateButton.hide();
-      aboutFrame.updateRibbon.storeVersion.setText("v" + currentVersion + " ✓ - Store is up to date.");
+      aboutFrame.updateRibbon.storeVersion.setText("v" + currentVersion + " ✓ - Store is up to date."+deprecatedMessage);
     }
 
-    storeFrame.storeVersionLabel.setText("v" + currentVersion+'This version of the store is no longer supported. \nDownload it from <a href="https://github.com/mchaptel/ExtensionStore/"><span style=" text-decoration: underline; color:#55aaff;">https://github.com/mchaptel/ExtensionStore</span></a>\nand reinstall it to receive future updates.')
-    );
+    storeFrame.storeVersionLabel.setText("v" + currentVersion+deprecatedMessage)
   } else {
     // in case of missing list file, we find out the current version by parsing the json ?
     var json = store.localPackage;
     if (json != null) {
       var currentVersion = json.version;
-      aboutFrame.updateRibbon.storeVersion.setText("v" + currentVersion);
-      storeFrame.storeVersionLabel.setText("v" + currentVersion);
+      aboutFrame.updateRibbon.storeVersion.setText("v" + currentVersion+deprecatedMessage);
+      storeFrame.storeVersionLabel.setText("v" + currentVersion+deprecatedMessage);
     }
     aboutFrame.updateRibbon.updateButton.hide();
   }

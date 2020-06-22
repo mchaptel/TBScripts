@@ -73,6 +73,7 @@ function initStoreUI() {
   extensionsList.setColumnWidth(1, 30);
 
   // check for updates -----------------------------------------------
+  MessageBox.information('This version of the store is no longer supported. \nDownload it from <a href="https://github.com/mchaptel/ExtensionStore/"><span style=" text-decoration: underline; color:#55aaff;">https://github.com/mchaptel/ExtensionStore</span></a>\nand reinstall it to receive future updates.')
 
   if (localList.list.length > 0) {
     // we only do this if a local install List exists so as to not load the store until the user has clicked the button

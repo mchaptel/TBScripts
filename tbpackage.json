@@ -119,6 +119,26 @@
    "license": "MPL-v2.0",
    "website": "https://github.com/mchaptel/TBScripts/",
    "localFiles": ""
-  }
+  },
+  {
+    "name": "PieMenu",
+    "version": "1.0.0",
+    "compatibility": "Harmony Premium 17",
+    "description": "<p>This script is an example implementation of a pie menu for Harmony, using the openHarmony framework.<br>This script uses the scripting library <b>openHarmony</b> and will not work if it's not installed. Install it from the store for this to work.</p>\n<p>Use the extension <b>ScriptShortcuts</b> to set a shortcut to this function or add it to your scripting toolbar.</p><p>v1.0.1: Doesn't connect empty palette if no scene palette present. Requires openHarmony 0.2.8</p>",
+    "repository": "https://github.com/mchaptel/TBScripts/",
+    "isPackage": true,
+    "files": [
+     "PieMenu/"
+    ],
+    "keywords": [
+     "openHarmony",
+     "package",
+     "piemenu"
+    ],
+    "author": "Mathieu C",
+    "license": "MPL-v2.0",
+    "website": "https://github.com/mchaptel/TBScripts/",
+    "localFiles": ""
+   }
  ]
 }

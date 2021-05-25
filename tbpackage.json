@@ -70,7 +70,7 @@
    "isPackage": false,
    "files": [
     "Generic Scripts/MC_CreateColoredBackdrop.js",
-    "script-icons/CreateColoredBackdrop.png"
+    "Generic Scripts/script-icons/createColoredBackdrop.png"
    ],
    "icon": "script-icons/CreateColoredBackdrop.png",
    "keywords": [

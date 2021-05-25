@@ -1,7 +1,7 @@
 {
  "name": "Mathieu C",
  "website": "https://github.com/mchaptel/TBScripts/",
- "social": "",
+ "social": ["https://twitter.com/mathieuchaptel"],
  "repository": "https://github.com/mchaptel/TBScripts/",
  "extensions": [
   {
@@ -69,8 +69,10 @@
    "repository": "https://github.com/mchaptel/TBScripts/",
    "isPackage": false,
    "files": [
-    "Generic Scripts/MC_CreateColoredBackdrop.js"
+    "Generic Scripts/MC_CreateColoredBackdrop.js",
+    "script-icons/CreateColoredBackdrop.png"
    ],
+   "icon": "script-icons/CreateColoredBackdrop.png",
    "keywords": [
     "nodeview",
     "openHarmony",

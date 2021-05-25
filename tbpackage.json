@@ -72,7 +72,7 @@
     "Generic Scripts/MC_CreateColoredBackdrop.js",
     "Generic Scripts/script-icons/createColoredBackdrop.png"
    ],
-   "icon": "script-icons/CreateColoredBackdrop.png",
+   "icon": "Generic Scripts/script-icons/createColoredBackdrop.png",
    "keywords": [
     "nodeview",
     "openHarmony",

@@ -8,17 +8,18 @@
    "name": "ScriptsShortcuts",
    "version": "0.1.0",
    "compatibility": "Harmony Premium 16",
-   "description": "This script allows users to add shortcuts to the scripts they have installed",
+   "description": "<p>This script allows users to add shortcuts to the scripts they have installed.</p><p>At startup, this extension will scan the scripts available and will create a shortcut entry for each in the Keyboards Shortcuts window.</p><p>After installation, restart Harmony to activate this extension and the shortcuts will be created.</p><p>Icon generously donated by APhillips</p>",
    "repository": "https://github.com/mchaptel/TBScripts/",
    "isPackage": "true",
    "files": [
     "ScriptsShortcuts/packages/ScriptsShortcuts/"
    ],
+   "icon": "Generic Scripts/script-icons/MC_ScriptsShortcuts.png",
    "keywords": [
     "shortcuts",
     "package"
    ],
-   "author": "Mathieu Chaptel",
+   "author": "Mathieu C",
    "license": "MPL-2.0",
    "website": "https://github.com/mchaptel/TBScripts/",
    "localFiles": ""
@@ -65,7 +66,7 @@
    "name": "Create Colored Backdrops",
    "version": "1.0.1",
    "compatibility": "Harmony Premium 16",
-   "description": "Simple Script to create a backdrop of any color possible.<p>This script uses the scripting library <b>openHarmony</b> and will not work if it's not installed. Install it from the store for this to work.</p>\n<p>Use the extension <b>ScriptShortcuts</b> to set a shortcut to this function or add it to your scripting toolbar.</p><p> v1.0.1 : can now create backdrops inside any group.</p>",
+   "description": "Simple Script to create a backdrop of any color possible.<p>This script uses the scripting library <b>openHarmony</b> and will not work if it's not installed. Install it from the store for this to work.</p>\n<p>Use the extension <b>ScriptShortcuts</b> to set a shortcut to this function or add it to your scripting toolbar.</p><p> v1.0.1 : can now create backdrops inside any group.</p><p>Icon generously donated by APhillips</p>",
    "repository": "https://github.com/mchaptel/TBScripts/",
    "isPackage": false,
    "files": [
